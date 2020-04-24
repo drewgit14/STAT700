@@ -1,0 +1,500 @@
+---
+title: '9 Additional Graphs 1,3,4,5 '
+author: "Andrew Marshall"
+date: "7/23/2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+# General Instructions
+
+There are 5 exercises, each is worth 10 points. As usual, select 4 for grading. One exercise must be compeleted in both languages. There is no SAS template for these exercises, you must create your own SAS file.
+
+
+# Exercise 1.
+
+Load the JoyOfCooking data set from lecture and create histograms, QQ-norm and box-whisker plots for calories per serving and servings per recipe. You can use data from either year. Add a title to each plot, identifying the data.
+```{r}
+#This section will import the JoyOfCooking data from a CSV file into a dataframe.
+
+PathToJoy <- "C:/Users/drewm/Documents/GitHub/code-stat700/JoyOfCooking.csv"
+JoyOfCooking <- read.csv(PathToJoy,header=TRUE)
+JoyOfCooking
+
+
+
+```
+
+```{r}
+#This section will present a histogram of the JoyOfCooking data (Calories Per Serving) that was recently imported.
+
+hist(JoyOfCooking$CaloriesperServing2006,main = paste("Histogram of Calories Per Serving 2006"),xlab = "Calories Per Serving")
+
+```
+
+```{r}
+#This section will present a histogram of the JoyOfCooking data (Servings Per Recipe) that was recently imported.
+
+hist(JoyOfCooking$ServingsperRecipe2006,main = paste("Histogram of Servings Per Recipe 2006"),xlab = "Servings Per Recipe")
+```
+
+```{r}
+#This section will present a Q-Q Norm graph of the JoyOfCooking data (Calories Per Serving) that was recently imported.
+
+qqnorm(JoyOfCooking$CaloriesperServing2006,main = "Normal Q-Q Plot for Calories Per Serving 2006")
+
+```
+
+```{r}
+#This section will present a Q-Q Norm graph of the JoyOfCooking data (Calories Per Serving) that was recently imported.
+
+qqnorm(JoyOfCooking$ServingsperRecipe2006,main = "Normal Q-Q Plot for Servings Per Recipe 2006")
+
+```
+
+```{r}
+#This section will present a box-whisker plot of the JoyOfCooking data (Calories Per Serving) that was recently imported.
+
+boxplot(JoyOfCooking$CaloriesperServing2006,main = paste("Box-Whisker Plot of Calories Per Serving 2006"),ylab = "Calories Per Serving")
+```
+
+```{r}
+#This section will present a box-whisker plot of the JoyOfCooking data (Servings Per Recipe) that was recently imported.
+
+boxplot(JoyOfCooking$ServingsperRecipe2006,main = paste("Histogram of Servings Per Recipe 2006"),ylab = "Servings Per Recipe")
+
+```
+
+
+# Exercise 2.
+
+Review Exercise 3, Homework 6, where you calculated skewness and kurtosis. The reference for this exercise, https://www.itl.nist.gov/div898/handbook/eda/section3/eda35b.htm, gives four example statistical distributions. We will reproduce the histograms, and add qqnorm and box-whisker plots.
+
+## Part a
+
+Use the code below from lecture to draw 1000 samples from the normal distribution.
+
+```{r}
+norm.sample <- rnorm(1000, mean=0, sd=1)
+```
+
+
+Look up the corresponding `r*` functions in R for the Cauchy distribution (use location=0, scale=1), and the Weibull distribution (use shape = 1.5). For the double exponential, use you can use the *laplace functions from the `rmutil` library, or you can use `rexp(1000) - rexp(1000)`
+
+Draw 1000 samples from each of these distributions. Calculate skewness and kurtosis for each sample. You can use your own functions, or the moments library.
+
+
+## Part b
+
+Plot the histograms for each distribution. Use `par(mfrow=c(2,2))` in your code chunk to combine the four histogram in a single plot. Add titles to the histograms indicating the distribution. Set the x-axis label to show the calculated skewness and kurtosis, i.e. `skewness = ####, kurtosis = ####`
+
+
+## Part c
+Repeat Part b, but with QQ-norm plots.
+
+
+## Part d
+
+Repeat Part b, but with box-whisker plots.
+
+
+Hints for SAS. If you create the samples in IML, use 
+```
+Normal = j(1, 1000, .);
+call randgen(Normal, "NORMAL", 0, `);
+```
+
+You can generate samples in the data step using
+```
+do i = 1 to 1000;
+  Normal = rand('NORMAL',0,1);
+  output;
+end;
+```
+
+RAND doesn't provide a Laplace option, but you can create samples from this distribution by
+```
+rand('EXPONENTIAL')-rand('EXPONENTIAL');
+```
+
+To group multiple plots, use
+```
+ods graphics / width=8cm height=8cm;
+ods layout gridded columns=2;
+ods region;
+ ... first plot
+
+ods region;
+ ... second plot
+
+ods layout end;
+```
+
+You might need to include
+```
+ods graphics off;
+
+ods graphics on;
+ODS GRAPHICS / reset=All;
+```
+to return the SAS graphics output to normal.
+
+## Exercise 3.
+
+Iterate over a sequence of $\mu$, from 2 to 64, doubling $\mu$ each time, and draw 1000 samples from the Poisson distribution for each $\mu$.
+
+Calculate the skewness for each of samples, and plot histograms, QQ-norm and box-whisker plots for each. You can use `par(mfrow=c(1,3))` to display all three graphs for one $\mu$ in one line. Add `lambda=##` to the title of the histogram, and `skewness=##` to the title of the box-whisker plot.
+
+```{r}
+#This section will iterate a sequence from 2 to 64, which will result in a sequence of 6 integers:  2,4,8,16,32,64
+
+# This will prevent the use of scientific notation in the output
+options(scipen=999)
+
+#The sequence is being generated and assigned to "mu"
+mu.sequence <- c(1,2,3,4,5,6)
+mu <- 2^mu.sequence
+
+mu
+
+
+```
+```{r}
+#This section will calculate the skewness, plot histogram, QQ-norm, and box-whisker plots for the 1st sample
+
+#This loads the library "moments" so the skewness function can be used.
+library(moments)
+
+#The number of sample values for use with the Poisson distribution is being assigned to "N";The sample values along with the sequence "mu" will be input into the rpois() function
+N <- 1000
+
+set.seed(123456)
+skewtest1 <- rpois(N,mu[1])
+skew1 <- skewness(skewtest1)
+
+#These are the 3 plots being generated using the previously generated data.
+hist(skewtest1, main = "lambda = 2")
+qqnorm(skewtest1)
+boxplot(skewtest1,ylab = paste("skewness=",skew1))
+
+
+par(mfrow=c(1,3))
+
+
+
+
+
+```
+```{r}
+#This section will calculate the skewness, plot histogram, QQ-norm, and box-whisker plots for the 2nd sample
+
+#This loads the library "moments" so the skewness function can be used.
+library(moments)
+
+#The number of sample values for use with the Poisson distribution is being assigned to "N";The sample values along with the sequence "mu" will be input into the rpois() function
+N <- 1000
+
+set.seed(123456)
+skewtest2 <- rpois(N,mu[2])
+skew2 <- skewness(skewtest2)
+
+#These are the 3 plots being generated using the previously generated data.
+hist(skewtest2, main = "lambda = 4")
+qqnorm(skewtest2)
+boxplot(skewtest2,ylab = paste("skewness=",skew2))
+
+
+par(mfrow=c(1,3))
+```
+```{r}
+
+#This section will calculate the skewness, plot histogram, QQ-norm, and box-whisker plots for the 3rd sample
+
+#This loads the library "moments" so the skewness function can be used.
+library(moments)
+
+#The number of sample values for use with the Poisson distribution is being assigned to "N";The sample values along with the sequence "mu" will be input into the rpois() function
+N <- 1000
+
+set.seed(123456)
+skewtest3 <- rpois(N,mu[3])
+skew3 <- skewness(skewtest3)
+
+#These are the 3 plots being generated using the previously generated data.
+hist(skewtest3, main = "lambda = 8")
+qqnorm(skewtest3)
+boxplot(skewtest3,ylab = paste("skewness=",skew3))
+
+
+par(mfrow=c(1,3))
+
+```
+```{r}
+#This section will calculate the skewness, plot histogram, QQ-norm, and box-whisker plots for the 4th sample
+
+#This loads the library "moments" so the skewness function can be used.
+library(moments)
+
+#The number of sample values for use with the Poisson distribution is being assigned to "N";The sample values along with the sequence "mu" will be input into the rpois() function
+N <- 1000
+
+set.seed(123456)
+skewtest4 <- rpois(N,mu[4])
+skew4 <- skewness(skewtest4)
+
+#These are the 3 plots being generated using the previously generated data.
+hist(skewtest4, main = "lambda = 16")
+qqnorm(skewtest4)
+boxplot(skewtest4,ylab = paste("skewness=",skew4))
+
+par(mfrow=c(1,3))
+
+
+```
+```{r}
+#This section will calculate the skewness, plot histogram, QQ-norm, and box-whisker plots for the 5th sample
+
+#This loads the library "moments" so the skewness function can be used.
+library(moments)
+
+#The number of sample values for use with the Poisson distribution is being assigned to "N";The sample values along with the sequence "mu" will be input into the rpois() function
+N <- 1000
+
+set.seed(123456)
+skewtest5 <- rpois(N,mu[5])
+skew5 <- skewness(skewtest5)
+
+#These are the 3 plots being generated using previously generated data.
+hist(skewtest5, main = "lambda = 32")
+qqnorm(skewtest5)
+boxplot(skewtest5,ylab = paste("skewness=",skew5))
+
+par(mfrow=c(1,3))
+```
+```{r}
+#This section will calculate the skewness, plot histogram, QQ-norm, and box-whisker plots for the 6th sample
+
+#This loads the library "moments" so the skewness function can be used.
+library(moments)
+
+#The number of sample values for use with the Poisson distribution is being assigned to "N";The sample values along with the sequence "mu" will be input into the rpois() function
+N <- 1000
+
+set.seed(123456)
+skewtest6 <- rpois(N,mu[6])
+skew6 <- skewness(skewtest6)
+
+#These are the 3 plots being generated using previously generated data.
+hist(skewtest6, main = "lambda = 64")
+qqnorm(skewtest6)
+boxplot(skewtest6,ylab = paste("skewness=",skew6))
+
+par(mfrow=c(1,3))
+```
+
+
+
+## Part b. 
+
+Remember that `lambda` represents the mean of a discrete (counting) variable. At what size mean is Poisson data no longer skewed, relative to normally distributed data? You might run this 2 or 3 times, with different seeds; this number varies, in my experience.
+
+
+If you do this in SAS, create a data table with data columns each representing a different $\mu$. You can see combined histogram, box-whisker and QQ-norm, for all columns, by calling
+
+```
+proc univariate data=Distributions plot;
+run;
+```
+
+At what $\mu$ is skewness of the Poisson distribution small enough to be considered normal?
+```{r}
+
+skew <- 1:100
+for(i in 1:100) {
+  norm.sample <- rnorm(1000, mean=0, sd=1)
+  skew[i] <- skewness(norm.sample)
+}
+hist(skew)
+summary(skew)
+
+
+skew1 <- skewness(skewtest1)
+skew2 <- skewness(skewtest2)
+skew3 <- skewness(skewtest3)
+skew4 <- skewness(skewtest4)
+skew5 <- skewness(skewtest5)
+skew6 <- skewness(skewtest6)
+
+skew1
+skew2
+skew3
+skew4
+skew5
+skew6
+
+#The output of "skew5" is 0.086551, which is less than 0.1.  In this case, that would make it the mu that would be considered normal.
+
+
+```
+
+
+# Exercise 4
+
+## Part a
+
+Write a function that accepts
+
+a. a vector `sample` of data
+b. a vector of integers
+c. a main title 
+d. an x axis label. 
+
+This function should 
+
+1. iterate over each element $i$ in the vector of integers 
+2. produce a histogram for `sample` setting the number of bins in the histogram to $i$
+3. label main and x-axis with the specified parameters. 
+4. label the y-axis to read `Frequency, bins =` and the number of bins.
+
+Hint:
+You can simplify this function by using the parameter `...` - see `?plot` or ?`hist`
+
+```{r}
+# testv <- c(1,2,3,4,5,6,7,8,9,10)
+
+#Generating test sequence
+testv <- rnorm(100)
+
+#Vector of test bins
+testbins <- c(5,10,50)
+
+#Creating function and running test case
+func <- function(sampv,bins,mainlabel,xlabel,ylabel) {
+    v <- c()
+    len <- length(sampv)
+    len1 <- length(bins)
+    
+    #iterate the number of entries from vector
+    for(i in  1:len)
+     v[i] <- sampv[i]
+    
+     for (k in 1:len1){
+      hists <- hist(v,breaks = bins[k],main = mainlabel,xlab = xlabel,ylab = paste(ylabel, bins[k]))
+    }
+
+    return(hists)
+}
+func(testv,testbins,"Histogram Test","x-axis","y-axis bins=")
+
+
+```
+
+
+## Part b
+Test your function with the `hidalgo` data set (see below), using bin numbers 12, 36, and 60. You should be able to call your function with something like
+```
+plot.histograms(hidalgo.dat[,1],c(12,36,60), main="1872 Hidalgo issue",xlab= "Thickness (mm)")
+```
+to plot three different histograms of the `hidalgo` data set.
+
+
+If you do this in SAS, write a macro that accepts a table name, a column name, a list of integers, a main axis label and an x axis label. This macro should scan over each element in the list of integers and produce a histogram for each integer value, setting the bin count to the element in the input list, and labeling main and x-axis with the specified parameters. You should label the y-axis to read `Frequency, bins =` and the number of bins.
+
+Test your macro with the `hidalgo` data set (see below), using bin numbers 12, 36, and 60. You should be able to call your macro with something like
+```
+%plot_histograms(hidalgo, y, 12 36 60, main="1872 Hidalgo issue", xlabel="Thickness (mm)");
+```
+to plot three different histograms of the `hidalgo` data set.
+
+Hint:
+Assume `12 36 60` resolve to a single macro parameter and use `%scan`. Your macro definition can look something like
+```
+%macro plot_histograms(table_name, column_name, number_of_bins, main="Main", xlabel="X Label")
+```
+```{r}
+#Path information for reading file from local machine
+PathTohidalgo = "C:/Users/drewm/Documents/GitHub/code-stat700/hidalgo.dat"
+
+#Assigning data from file to data frame
+hidalgo <- read.delim(PathTohidalgo,header=TRUE,skip= 0,sep = "",as.is=TRUE)
+
+#Creating function and running requested values
+hidalgo <- as.numeric(hidalgo$X.060)
+bins <- c(12,36,60)
+
+func <- function(sampv,bins,mainlabel,xlabel,ylabel) {
+    v <- c()
+    len <- length(sampv)
+    len1 <- length(bins)
+    
+    #Iterate the number of entries from vector
+    for(i in  1:len)
+     v[i] <- sampv[i]
+    
+     for (k in 1:length(bins)){
+      hists <- hist(v,breaks = bins[k],main = mainlabel,xlab = xlabel,ylab = paste(ylabel, bins[k]))
+    }
+
+    return(hists)
+}
+func(hidalgo,bins,"1872 Hidalgo issue","Thickness (mm)","Frequency, bins =")
+```
+
+
+
+
+## Data
+The `hidalgo` data set is in the file `hidalgo.dat` These data consist of paper thickness measurements of stamps from the 1872 Hidalgo issue of Mexico. This data set is commonly used to illustrate methods of determining the number of components in a mixture (in this case, different batches of paper). See https://www.jstor.org/stable/2290118,  
+https://books.google.com/books?id=1CuznRORa3EC&lpg=PA95&pg=PA94#v=onepage&q&f=false and https://books.google.com/books?id=c2_fAox0DQoC&pg=PA180&lpg=PA180&f=false
+.
+
+Some analysis suggest there are three different mixtures of paper used to produce the 1872 Hidalgo issue; other analysis suggest 3. Why do you think there might be disagreement about the number of mixtures?
+
+
+# Exercise 5.
+
+Use `countyPrecipitation` and `countyTemperature` data. These are county-level averages of precipitation and temperature, by month, for the state of South Dakota. Plot a summary of precipitation and temperature by month, using box-whisker plots, one plot for each data set. 
+
+You might need to reshape the data. In the plot, the data are to be ordered chronologically by month, and the x-axis tick labels should show the abbreviations of the month ("Jan", "Feb", etc). You can create an index for month to get the order correct, but you will need to set the axis tick labels.
+
+Label the y-axis "Temperature (degrees F)" or "Precipitation (inches)"
+
+```{r}
+
+#Path information for reading file from local machine
+PathToPrecip = "C:/Users/drewm/Documents/GitHub/code-stat700/countyPrecipitation.tab"
+
+#Path information for reading file from local machine
+PathToTemp = "C:/Users/drewm/Documents/GitHub/code-stat700/countyTemperature.tab"
+
+#Assigning data from file to data frame
+cPrecip <- read.delim(PathToPrecip,header=TRUE,skip= 0,sep = "\t",as.is=TRUE)
+
+#Assigning data from file to data frame
+cTemp <- read.delim(PathToTemp,header=TRUE,skip= 0,sep = "\t",as.is=TRUE)
+
+#This will remove the County names from the data frame to make plotting the other data easier.
+cPrecip <- cPrecip[,-1]
+cTemp <- cTemp[,-1]
+
+
+
+# #This section will present a box-whisker plot of the County Precipatation data that was recently imported.
+
+boxplot(cPrecip,main = paste("County Precipitation"),ylab = "Precipitation (inches)")
+
+# #This section will present a box-whisker plot of the JoyOfCooking data (Servings Per Recipe) that was recently imported.
+
+boxplot(cTemp,main = paste("County Temperature"),ylab = "Temperature (degrees F)")
+
+
+
+
+
+```
+
+
+
+
+

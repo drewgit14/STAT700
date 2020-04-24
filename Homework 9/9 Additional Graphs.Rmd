@@ -1,0 +1,170 @@
+---
+title: "9 Additional Graphs 1,3,4,5"
+author: "Andrew Marshall"
+date: "7/23/2018"
+output: html_document
+---
+
+# General Instructions
+
+There are 5 exercises, each is worth 10 points. As usual, select 4 for grading. One exercise must be compeleted in both languages. There is no SAS template for these exercises, you must create your own SAS file.
+
+
+# Exercise 1.
+
+Load the JoyOfCooking data set from lecture and create histograms, QQ-norm and box-whisker plots for calories per serving and servings per recipe. You can use data from either year. Add a title to each plot, identifying the data.
+
+
+# Exercise 2.
+
+Review Exercise 3, Homework 6, where you calculated skewness and kurtosis. The reference for this exercise, https://www.itl.nist.gov/div898/handbook/eda/section3/eda35b.htm, gives four example statistical distributions. We will reproduce the histograms, and add qqnorm and box-whisker plots.
+
+## Part a
+
+Use the code below from lecture to draw 1000 samples from the normal distribution.
+
+```{r}
+norm.sample <- rnorm(1000, mean=0, sd=1)
+```
+
+
+Look up the corresponding `r*` functions in R for the Cauchy distribution (use location=0, scale=1), and the Weibull distribution (use shape = 1.5). For the double exponential, use you can use the *laplace functions from the `rmutil` library, or you can use `rexp(1000) - rexp(1000)`
+
+Draw 1000 samples from each of these distributions. Calculate skewness and kurtosis for each sample. You can use your own functions, or the moments library.
+
+
+## Part b
+
+Plot the histograms for each distribution. Use `par(mfrow=c(2,2))` in your code chunk to combine the four histogram in a single plot. Add titles to the histograms indicating the distribution. Set the x-axis label to show the calculated skewness and kurtosis, i.e. `skewness = ####, kurtosis = ####`
+
+
+## Part c
+Repeat Part b, but with QQ-norm plots.
+
+
+## Part d
+
+Repeat Part b, but with box-whisker plots.
+
+
+Hints for SAS. If you create the samples in IML, use 
+```
+Normal = j(1, 1000, .);
+call randgen(Normal, "NORMAL", 0, `);
+```
+
+You can generate samples in the data step using
+```
+do i = 1 to 1000;
+  Normal = rand('NORMAL',0,1);
+  output;
+end;
+```
+
+RAND doesn't provide a Laplace option, but you can create samples from this distribution by
+```
+rand('EXPONENTIAL')-rand('EXPONENTIAL');
+```
+
+To group multiple plots, use
+```
+ods graphics / width=8cm height=8cm;
+ods layout gridded columns=2;
+ods region;
+ ... first plot
+
+ods region;
+ ... second plot
+
+ods layout end;
+```
+
+You might need to include
+```
+ods graphics off;
+
+ods graphics on;
+ODS GRAPHICS / reset=All;
+```
+to return the SAS graphics output to normal.
+
+## Exercise 3.
+
+Iterate over a sequence of $\mu$, from 2 to 64, doubling $\mu$ each time, and draw 1000 samples from the Poisson distribution for each $\mu$.
+
+Calculate the skewness for each of samples, and plot histograms, QQ-norm and box-whisker plots for each. You can use `par(mfrow=c(1,3))` to display all three graphs for one $\mu$ in one line. Add `lambda=##` to the title of the histogram, and `skewness=##` to the title of the box-whisker plot.
+
+## Part b. 
+
+Remember that `lambda` represents the mean of a discrete (counting) variable. At what size mean is Poisson data no longer skewed, relative to normally distributed data? You might run this 2 or 3 times, with different seeds; this number varies, in my experience.
+
+
+If you do this in SAS, create a data table with data columns each representing a different $\mu$. You can see combined histogram, box-whisker and QQ-norm, for all columns, by calling
+
+```
+proc univariate data=Distributions plot;
+run;
+```
+
+At what $\mu$ is skewness of the Poisson distribution small enough to be considered normal?
+
+
+# Exercise 4
+
+## Part a
+
+Write a function that accepts
+
+a. a vector `sample` of data
+b. a vector of integers
+c. a main title 
+d. an x axis label. 
+
+This function should 
+
+1. iterate over each element $i$ in the vector of integers 
+2. produce a histogram for `sample` setting the number of bins in the histogram to $i$
+3. label main and x-axis with the specified parameters. 
+4. label the y-axis to read `Frequency, bins =` and the number of bins.
+
+Hint:
+You can simplify this function by using the parameter `...` - see `?plot` or ?`hist`
+
+## Part b
+Test your function with the `hidalgo` data set (see below), using bin numbers 12, 36, and 60. You should be able to call your function with something like
+```
+plot.histograms(hidalgo.dat[,1],c(12,36,60), main="1872 Hidalgo issue",xlab= "Thickness (mm)")
+```
+to plot three different histograms of the `hidalgo` data set.
+
+
+If you do this in SAS, write a macro that accepts a table name, a column name, a list of integers, a main axis label and an x axis label. This macro should scan over each element in the list of integers and produce a histogram for each integer value, setting the bin count to the element in the input list, and labeling main and x-axis with the specified parameters. You should label the y-axis to read `Frequency, bins =` and the number of bins.
+
+Test your macro with the `hidalgo` data set (see below), using bin numbers 12, 36, and 60. You should be able to call your macro with something like
+```
+%plot_histograms(hidalgo, y, 12 36 60, main="1872 Hidalgo issue", xlabel="Thickness (mm)");
+```
+to plot three different histograms of the `hidalgo` data set.
+
+Hint:
+Assume `12 36 60` resolve to a single macro parameter and use `%scan`. Your macro definition can look something like
+```
+%macro plot_histograms(table_name, column_name, number_of_bins, main="Main", xlabel="X Label")
+```
+
+## Data
+The `hidalgo` data set is in the file `hidalgo.dat` These data consist of paper thickness measurements of stamps from the 1872 Hidalgo issue of Mexico. This data set is commonly used to illustrate methods of determining the number of components in a mixture (in this case, different batches of paper). See https://www.jstor.org/stable/2290118,  
+https://books.google.com/books?id=1CuznRORa3EC&lpg=PA95&pg=PA94#v=onepage&q&f=false and https://books.google.com/books?id=c2_fAox0DQoC&pg=PA180&lpg=PA180&f=false
+.
+
+Some analysis suggest there are three different mixtures of paper used to produce the 1872 Hidalgo issue; other analysis suggest 3. Why do you think there might be disagreement about the number of mixtures?
+
+
+# Exercise 5.
+
+Use `countyPrecipitation` and `countyTemperature` data. These are county-level averages of precipitation and temperature, by month, for the state of South Dakota. Plot a summary of precipitation and temperature by month, using box-whisker plots, one plot for each data set. 
+
+You might need to reshape the data. In the plot, the data are to be ordered chronologically by month, and the x-axis tick labels should show the abbreviations of the month ("Jan", "Feb", etc). You can create an index for month to get the order correct, but you will need to set the axis tick labels.
+
+Label the y-axis "Temperature (degrees F)" or "Precipitation (inches)"
+

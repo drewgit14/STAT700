@@ -1,0 +1,401 @@
+---
+title: '8 Processing Text Homework - Exercise 5 '
+author: "Andrew Marshall"
+date: "7/16/2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+# Data
+
+Data for this exercise.
+
+```{r}
+Year <- c(1936, 1946, 1951, 1963, 1975, 1997, 2006)
+CaloriesPerRecipeMean <- c(2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9)
+CaloriesPerRecipeSD <- c(1050.0, 1002.3, 1009.6, 1078.6, 1089.2, 1094.8, 1496.2)
+```
+
+# General Instructions
+
+* There are 6 exercises. Choose 4 to be graded.
+* One of the exercises must be completed in both SAS and R. Make sure you document this in the output.
+* The other 3 exercises are to be complete in either R or SAS. Make sure you document this in the output.
+
+#Exercise 1.
+
+Revisit Exercise 1 from Homework 6. Print a list of messages describing the effect size for each unique pair of means from `CaloriesPerRecipe`. Your messages should look like
+
+```
+The difference between 1936 and 1945 is ####. This is a ???? difference.
+The difference between 1936 and 1951 is ####. This is a ???? difference.
+...
+```
+
+`####` should be replaced with absolute value for the difference between pair of means, and `????` will be `small`, `medium` or `large`. Calculate Cohen $d$ for each pair, and use $d<0.2$ to determine small effects and $d>0.8$ for large effects.
+
+Print each message on a single line. The result will look better if you use `cat` in R.
+
+If you use SAS, used `scan` to iterate over the list macro variables `CaloriesPerRecipeMean` and `CaloriesPerRecipeSD`. You can put the results to the log.
+
+
+# Exercise 2.
+
+Calculate MSW, MSB, $F$ and $p$ for the data from Wansink Table 1, but start with the strings:
+
+```{r}
+Means <- "268.1 271.1 280.9 294.7 285.6 288.6 384.4"
+StandardDeviations <- "124.8 124.2 116.2 117.7 118.3 122.0 168.3"
+SampleSizes <- "18 18 18 18 18 18 18"
+```
+
+Tokenize the strings, then convert the tokens to a create vectors of numeric values. Use these vectors to compute and print MSW, MSB, $F$ and $p$, reusing formula from Homework 4 or 6. Name the vectors appropriately to reuse code.
+```{r}
+#This will tokenize the strings into relevant vectors
+
+Means <- as.character(Means)
+StandardDeviations <- as.character(StandardDeviations)
+SampleSizes <- as.character(SampleSizes)
+
+MeansToken <- lapply(strsplit(Means,split =" " ),trimws)
+StandardDeviationsToken <- lapply(strsplit(StandardDeviations,split =" " ),trimws)
+SampleSizesToken <- lapply(strsplit(SampleSizes,split =" " ),trimws)
+
+MeansToken
+StandardDeviationsToken
+SampleSizesToken
+
+ 
+
+```
+
+
+
+
+
+If you use SAS, do this in a macro. Use local macro variables to accumulate sums, and `%put` to report the results.
+
+Compare your results from previous homework, or to the resource given in previous homework, to confirm that the text was correctly converted to numeric values.
+
+
+# Exercise 3.
+
+Reproduce the plot from Homework 1, Getting Started. 
+
+Tokenize the text below, then convert each token into a pair of values - mean and standard deviation. Use these values to create the vectors `CaloriesPerServingMean` and `CaloriesPerServingSD`. You will need to also tokenize the `YearRow` to create the `Year` vector.
+
+This is the table row copied almost verbatim from the Markdown table. Note that '|' is a meta-character in regular expressions (`or` operator), and R will coerce `split` into a regular expression when possible. Review the parameters for `strsplit` for options. You can use regular expressions or use fixed pattern matching at your discretion.
+
+
+```{r}
+TableRow <- "calories per serving (SD) | 268.1 (124.8) | 271.1 (124.2) | 280.9 (116.2)  | 294.7 (117.7) | 285.6 (118.3) | 288.6 (122.0) | 384.4 (168.3)"
+YearRow <- "1936 | 1946 | 1951 | 1963 | 1975 | 1997 | 2006"
+
+#This will extract the Year, Mean and SD values from the provided strings
+
+TableRow <- as.character(TableRow)
+
+#CPS data is split into separate units
+CPSTemp <-lapply(strsplit(TableRow,split =" \\|"),trimws)
+CPSTemp
+# 
+# 
+# #Extracts Mean values for evaluation
+# CPSTempMean <- CPSTemp[grepl(" [0-9.] \\(",CPSTemp)]
+# as.numeric(CPSTempMean)
+# 
+# CPSTempMean
+
+# CPSTempMeanTrim <-lapply(strsplit(CPSTempMean,split ="\\|"),trimws)
+# 
+# CPSTempMeanTrim
+
+#Extracts SD values for evaluation
+CPSTempSD <- gsub("(?<=\\()[^()]*(?=\\))(*SKIP)(*F)|.", " ", CPSTemp, perl=T)
+CPSTempSDTrim <-lapply(strsplit(CPSTempSD,split =" \\|"),trimws)
+
+CPSTempSDTrim
+
+
+# #This converts split string list into data frame for further calculations
+# TableRowMean.df <- data.frame(
+#   CPSTempMean
+# )
+# colnames(TableRowMean.df) <- c("CPS.Mean")
+# 
+# TableRowMean.df
+
+
+#This converts split string list into data frame for further calculations
+TableRowSD.df <- data.frame(
+  CPSTempSDTrim
+)
+colnames(TableRowSD.df) <- c("CPS.SD")
+
+
+TableRowSD.df
+
+
+#Year data is split into separate units
+Year <- lapply(strsplit(YearRow,split=" \\| "),trimws)
+
+
+#This converts split string list into data frame for further calculations
+Year.df <- data.frame(
+  Year
+)
+colnames(Year.df) <- c("Year")
+Year.df
+
+
+
+
+
+
+```
+
+
+Run this code (set `eval=TRUE`) to reproduce the plot.
+
+```{r,eval=FALSE}
+n <- 18
+alpha <- 0.05
+StandardError <- function(sigma, n) {
+  sigma/sqrt(n)
+}
+ConfidenceInterval <- function(sigma, n) {
+  qt(1-alpha/2, Inf)*StandardError(sigma,n)
+}
+
+CaloriesPerRecipe <- CaloriesPerServingMean
+Lower <- CaloriesPerRecipe - ConfidenceInterval(CaloriesPerServingSD,n)
+Upper <- CaloriesPerRecipe + ConfidenceInterval(CaloriesPerServingSD,n)
+
+plot(Year, CaloriesPerRecipe,
+     col="blue", pch=19,
+     main="Calories per Recipe", 
+     ylab="Calories", 
+     ylim=c(min(Lower), max(Upper)))
+lines(Year, CaloriesPerRecipe,
+      lty="dashed", col="blue", lend=2)
+segments(x0=Year, 
+         y0=Lower, 
+         x1=Year, 
+         y1=Upper)
+```
+
+If you choose SAS for this exercise, you will need to create a data table from the text. You can do this in macro language if you wish, but I would recommend doing this in two steps using `DATA`. I've provided a template for the first table. 
+
+Add a `do` loop and `scan` to `ParseTable` to tokenize `TableRow`, outputing one token per table row. Create a second table `PlotCookingTooMuch` from `ParseTable` by splitting the tokens into strings, one each for mean and standard deviation, then use the `input` function to convert each string to a numeric value.
+
+You can do this in one `DATA` step, if you wish, but I found it easier to debug in two steps.
+
+The code in the comments will plot this table.
+
+#Exercise 4.
+
+Download the two files `zero.to.60.csv` and `quarter.mile.csv`. These are records of motorcycle performance for a standing start to 60 mph and for quarter mile time. Each table has a column identifying the make and model for each entry, but this name of the column is different for each table. 
+
+## Part a. 
+
+There are some duplicates, so compute a mean of `Time` for each motorcycle, from both tables. 
+
+```{r}
+#Assigning path to CSV file to variable PathToZeroTo60
+PathToZeroTo60 = "C:/Users/drewm/Documents/GitHub/code-stat700/zero.to.60.csv"
+
+#Assigning path to CSV file to variable PathToZeroTo60
+PathToquartermile = "C:/Users/drewm/Documents/GitHub/code-stat700/quarter.mile.csv"
+
+#Assigning data from CSV file to data frame
+ZeroTo60.df <- read.delim(PathToZeroTo60,header=TRUE,skip= 0,sep = ",",as.is=TRUE)
+
+#Displaying data in dataframe
+ZeroTo60.df
+
+#Assigning data from CSV file to data frame
+Quartermile.df <- read.delim(PathToquartermile,header=TRUE,skip= 0,sep = ",",as.is=TRUE)
+
+#Displaying data in dataframe
+Quartermile.df
+
+ZeroTo60Mean <- mean(ZeroTo60.df$Time)
+ZeroTo60Mean
+
+QuartermileMean <- mean(Quartermile.df$Time)
+QuartermileMean
+
+
+
+
+```
+
+
+
+## Part b.
+
+Create a new table with these means, but use only those motorcycles that are in both tables. You will need to merge these by names.
+
+```{r}
+
+# TableMatch <- merge.data.frame(ZeroTo60.df,Quartermile.df,by.x = 'Make.and.model',by.y = 'Motorcycle')
+TableMatch <- merge(ZeroTo60.df,Quartermile.df,by.x = c('Make.and.model','Year'), by.y = c('Motorcycle','Model.Year'))
+
+#Renaming Columns
+colnames(TableMatch) <- c("Make and Model","Year","0-to-60 Time","Quarter Mile Time", "Final Speed")
+
+#This will sort the merged table by year
+TableMatch[order(TableMatch$Year),]
+
+
+
+#This will provide the mean for the newly merged columns.
+mean(TableMatch$'0-to-60 Time')
+mean(TableMatch$'Quarter Mile Time')
+
+
+
+```
+
+
+
+
+## Part c.
+
+Plot the relationship between 0-to-60 time and quarter mile time.
+
+```{r}
+
+#Assignments for time y plots
+x <- c(TableMatch$Year)
+y <- c(TableMatch$Time.x)
+
+#Assignments for time X plots
+x1 <- c(TableMatch$Year)
+y1 <- c(TableMatch$Time.y)
+
+
+# Relationship between 0-to-60 time and quarter-mile time
+plot(x,y,main = "Exercise 4, part c",col="blue",type="p")
+plot(x,y1,main = "Exercise 4, part c",col="red",type="p")
+
+
+
+
+```
+
+
+
+# Exercise 5.
+
+Read either file, `zero.to.60.csv` or `quarter.mile.csv`, from Exercise 4 into a table. Use partial matching to show the following sets of entries. You can assume make is the first word in the motorcycle name, and the model are the remaining words.
+
+## Part a
+
+What entries in this list were made by `BMW`?
+
+```{r}
+#Assigning path to CSV file to variable PathToZeroTo60
+PathToZeroTo60 = "C:/Users/drewm/Documents/GitHub/code-stat700/zero.to.60.csv"
+
+#Assigning data from CSV file to data frame
+ZeroTo60.df <- read.delim(PathToZeroTo60,header=TRUE,skip= 0,sep = ",",as.is=TRUE)
+
+#Displaying data in dataframe
+ZeroTo60.df
+
+
+```
+
+
+## Part b
+
+Which entries include 'Ninja` in the model name?
+
+```{r}
+#Assigning Make and Model data to "Motorcycles"" from ZeroTO60 dataframe.
+Motorcycles <- as.character(ZeroTo60.df$Make.and.model)
+Motorcycles
+
+#This will find all motorcycles with the name "Ninja in the model name"
+Ninjas <- Motorcycles[grepl("?Ninja?",Motorcycles )]
+Ninjas
+
+```
+
+
+## Part c
+
+List the motorcycle with model names ending with 'R' (for racing? I suppose)?
+
+```{r}
+
+#This will find all motorcycles with model names ending in 'R'
+Racing <- Motorcycles[grepl("R$",Motorcycles )]
+Racing
+
+
+```
+
+
+
+## Part d
+
+List the motorcycles that might be smaller than 'liter' bikes (engine size < 1000 cc), based on their name. First, exclude motorcycles with `1` in the name (these will mostly be 1000+ numbers). From that set of names, select those with numbers in range `2-9` in their names.
+
+```{r}
+
+#Creates list of models 'Small' with '1' anywhere in the name for use in the upcoming filter
+Small <- grepl(".1", Motorcycles)
+
+#Creates list of models 'Smaller' that excludes the models from the previous list
+Smaller <- Motorcycles[!Small]
+Smaller
+
+#Further filters the previous list 'Smaller' to only include model names with the numbers 2-9 in them
+Smallest <- Smaller[grepl(".[2-9]",Smaller)]
+Smallest
+
+
+
+
+
+```
+
+
+
+# Exercise 6
+
+Use the `quarter.mile.csv` file from Homework 5, read this into a data table. Plot each combination of columns (excluding `Make` and `Model`) with `MPH` as the dependent variable.
+
+## Part a.
+
+Create a list of independent variable names by excluding 'MPH' (this will be our independent variable), 'Make' and 'Model' (there are too few observations for many of these entries) from a vector containing the column names from `quarter.mile.csv`
+
+## Part b. 
+
+
+Iterate over the independent variable names. For each name, concatenate the name with `MPH` using the delimiter `'~'`. This will be the string correspond to the formula notation for a plot.
+
+Plot each combination of column by calling the `plot` with each formula string. You may need to use `as.formula` in R. There should be 4 plots.
+
+
+## Part c.
+Concatenate the independent variables names in to single string, delimited by '+', then concatenate this string with 'MPH' and '~'. Name this string `multivariate.model` and perform a multivariate AOV by executing the code (change the `eval` flag). Edit the `data` expression to match the name of your table.
+
+```{r, eval=FALSE}
+anova(lm(as.formula(multivariate.model),data=fastest.dat))
+```
+
+If you use SAS, you may need to rename one column after import to remove spaces in the name. 
+
+I've provided PROC SQL code that will read the column names of your imported table into a list of macro variables. Write a macro to iterate over these macro variables to produce the plots described for the R exercises. As you iterate, skip the excluded columns described above.
+
+Also write a macro to iterate over the column names to create a model statement for PROC GLM: I've provided a template and a global macro variable `GLMModel`. Set this global variable from inside your macro.
+
+The model statement should resolve to something like
+`model MPH = .... `
+followed by your column names, each separated by a space.
+
+Run the PROC GLM statement inside the comments.

@@ -1,0 +1,868 @@
+<style>
+.tiny-code pre code {
+  font-size: 1.02em;
+}
+.small-code pre code {
+  font-size: 1.2em;
+}
+.medium-code pre code {
+  font-size: 1.4em;
+}
+</style>
+
+
+Control Structures
+========================================================
+autosize: true
+font-family: 'Garamond'
+
+```{r, echo=FALSE}
+PathToJoy = "../data/JoyOfCooking.csv"
+JoyOfCooking.dat <- read.csv(PathToJoy,header=TRUE)
+```
+
+## Statistical Programming
+
+Concepts
+========================================================
+- Decision
+- Repetition
+
+
+Decision
+========================================================
+- if ... then 
+- if ... then ... else ...
+- ifelse
+
+if ...then
+========================================================
+
+Starting with R, the simple syntax is 
+```
+if (cond) expr
+```
+`expr` is executed when, and only when, `cond` is true.
+
+`cond` must be logical, or can be coerced to logical, and should satisy  `length(cond) =  1`
+
+Some examples
+========================================================
+
+```{r}
+if(TRUE) print('TRUE is true')
+if(!FALSE) print('FALSE is false')
+```
+
+========================================================
+```{r}
+if(1.0) print('1 is true')
+if(!0.0) print('0 is false')
+```
+
+
+========================================================
+```{r}
+if('TRUE') print("'TRUE' is true")
+```
+
+```
+if(!'FALSE') print("'FALSE' is true")
+Error in !("FALSE") : invalid argument type
+```
+
+========================================================
+```
+if('tru') print('1.0 is true')
+argument is not interpretable as logical
+```
+
+========================================================
+```{r}
+if(c(TRUE,FALSE,FALSE)) print('only the first needs be true')
+```
+
+if ... else
+========================================================
+Frequently, when we have a decision, we want to execute one of two alternate expressions. This requires the `else` clause,
+
+```{r}
+if(TRUE) print('TRUE is true') else print('TRUE is false')
+```
+
+========================================================
+R will require this to be a single expression
+```
+if(TRUE) print('TRUE is true') 
+else print('TRUE is false')
+
+Error in parse(text = x, srcfile = src) : <text>:2:1: unexpected 'else'
+1: if(TRUE) print('TRUE is true') 
+2: else
+```
+
+
+========================================================
+We can use grouping operators in this case. These are also required if there are multiple statements to be evalulated for each condition.
+```{r}
+if(TRUE) { 
+  print('TRUE is true')
+} else {
+  print('TRUE is false')
+}
+```
+
+
+ifelse
+========================================================
+*Ternary operator*, or *inline if*
+
+In C, the ternary operator is `?:`,
+```
+bigger <- (a<b)?b:a;
+```
+
+========================================================
+class: small-code
+
+In R, we mimic this with a function:
+```{r}
+print(a <- rnorm(1))
+print(b <- rnorm(1))
+print(bigger <- ifelse (a < b, b,a))
+```
+
+========================================================
+Note that, since most R statements produce a value, these are equivalent:
+```{r}
+print(bigger <- ifelse (a < b, b,a))
+print(bigger <- if (a < b) b else a)
+```
+
+IML conditions
+========================================================
+SAS IML syntax is only a little different, with an explicit `then`.
+SAS also has fewer options for values that evaluate to true or false:
+```
+  if(1) then print('1 is true');
+  if(2) then print('2 is also true');
+  if(^0) then print('0 is false');
+```
+
+========================================================
+Note that there is no semicolon after `then`, but there will need to
+be a semicolon before `else`
+```
+if(1) then print('1 is true'); else print('1 is false');
+```
+
+```
+/* Error */
+if(1) then print('1 is true') else print('1 is false');
+```
+
+========================================================
+Thus, we can split an if/else statement into two lines in IML,
+where we can't in R
+```
+  if(1) then print('1 is true'); 
+  else print('1 is false');
+```
+
+========================================================
+IML uses `do ... end;` for grouping. 
+```
+proc IML;
+  if(1) then do
+      print('1 is true');
+    end; 
+  else do;
+      print('1 is false');
+    end;
+quit;
+```
+
+========================================================
+
+IML will read matrices differently, as well,
+
+```
+  if(1) then print('1 is true');
+  if({1}) then print('{1} is true');
+  if({1,0,0}) then print('{1,0,0} is true');
+```
+
+========================================================
+IML `ifn` is the equivalent to `ifelse`.
+``` 
+  a = normal(123);
+  b = normal(312);
+  print(a);
+  print(b);
+  bigger = ifn (a > b, a,b);
+  print(bigger);
+
+```
+
+
+%if/%then/%else
+========================================================
+We can usually think of R and IML if/else as being functionaly equivalent. They represent conditional statement execution. In the macro language,
+
+```%if %then %else```
+
+represents conditional text processing. 
+
+
+
+Repetition
+========================================================
+Suppose we have a block of code in `<statements>` that is to be executed 0/1 or more times. The two most commonly used constructs for repetition are
+
+- Count (for/do)
+- Event (while/until)
+
+
+Count
+========================================================
+Algol-family languages use a syntax of the form
+### Algol
+```
+   for i := 1 step 1 until k do
+     begin
+      <statements>
+     end
+```
+
+### C
+```
+for (i = 0; i<k; i++) {
+  <statements>
+}
+```
+
+========================================================
+Fortran family are a bit different.
+### FORTRAN 77
+```
+       do 10 i = 1, k, 1
+         <statements>
+    10 continue
+```
+
+### FORTRAN 90
+```
+       do i = 1, n, 1
+         <statements>
+       end do
+```
+
+DO What?
+========================================================
+$$
+\begin{aligned}
+  \bar{x} &= \frac{\sum_{i=1} ^k x}{k} \\
+  s^2&\frac{\sum_{i=1} ^k (x_i-\bar{x})^2}{k-1}
+\end{aligned}
+$$
+
+
+========================================================
+Using data from the Joy of Cooking data set.
+```{r}
+x <- JoyOfCooking.dat$CaloriesperServing1936
+x <- x[!is.na(x)]
+k <- length(x)
+sum.x <- 0
+for (i in 1:k) {
+  sum.x <- sum.x + x[i]
+}
+bar.x <- sum.x/k
+```
+
+========================================================
+
+```{r}
+ss.x <- 0
+for (i in 1:k) {
+  ss.x <- ss.x + (x[i]-bar.x)^2
+}
+s.x <- ss.x/(k-1)
+```
+
+========================================================
+
+```{r}
+sum.x
+sum(x)
+```
+
+
+========================================================
+
+```{r}
+bar.x
+mean(x)
+```
+
+
+========================================================
+
+```{r}
+sqrt(s.x)
+sd(x)
+```
+
+IML
+========================================================
+class: small-code
+
+Equivalent code in IML are
+```
+  JoyTbl = TableCreateFromDataSet("JoyOfCooking"); 
+  x = TableGetVarData(JoyTbl, {"CaloriesperServing1936"});
+  k = nrow(x);
+  sum_x = 0;
+  do i = 1 to k; 
+    sum_x = sum_x + x[i];
+  end;
+  bar_x = sum_x/k;
+```
+
+
+Note
+========================================================
+class: small-code
+
+R iteration is not like C iteration:
+```
+for (i = 1; i<=k; i++) {
+```
+vs
+```
+for(i in 1:k) {
+```
+What is `1:k`? 
+
+`for` in R doesn't use a single variable as an index; instead, it visits each element in a vector.
+
+
+========================================================
+We can write
+```{r}
+sum.x <- 0
+for (i in x) {
+  sum.x <- sum.x + i
+}
+bar.x <- sum.x/k
+ss.x <- 0
+for (i in x) {
+  ss.x <- ss.x + (i-bar.x)^2
+}
+s.x <- ss.x/(k-1)
+```
+
+========================================================
+
+```{r}
+sqrt(s.x)
+sd(x)
+```
+
+
+Combining repetition and decision
+========================================================
+class: small-code
+
+Suppose we hadn't removed NA values from x
+```{r}
+x <- JoyOfCooking.dat$CaloriesperServing1936
+k <- length(x)
+sum.x <- 0
+for (i in x) {
+  sum.x <- sum.x + i
+}
+bar.x <- sum.x/k
+bar.x
+```
+
+========================================================
+So, we might add something like
+```{r}
+sum.x <- 0
+for (i in x) {
+  if(!is.na(i)) 
+    sum.x <- sum.x + i
+}
+```
+
+========================================================
+class: small-code
+or, even,
+```{r}
+sum.x <- 0
+for (i in x) {
+    sum.x <- sum.x + ifelse(is.na(i),0,i)
+}
+sum(sum.x/k)
+mean(x,na.rm=TRUE)
+```
+
+
+========================================================
+class: small-code
+Oops, `length(k)` includes the missing values, so
+```{r}
+sum.x <- 0
+for (i in x) {
+  if(!is.na(i))  {
+    sum.x <- sum.x + i
+  } else {
+    k <- k-1
+  }
+}
+sum(sum.x/k)
+mean(x,na.rm=TRUE)
+```
+
+======================================================== 
+class: small-code
+or
+
+```{r}
+sum.x <- 0
+k <- 0
+for (i in x) {
+  if(!is.na(i)) 
+    sum.x <- sum.x + i
+    k <- k+1
+}
+sum(sum.x/k)
+mean(x,na.rm=TRUE)
+```
+
+
+========================================================
+class: small-code
+
+Oops, again, didn't use braces
+
+```{r}
+sum.x <- 0
+k <- 0
+for (i in x) {
+  if(!is.na(i)) {
+    sum.x <- sum.x + i
+    k <- k+1   
+  }
+}
+sum(sum.x/k)
+mean(x,na.rm=TRUE)
+```
+
+IML
+========================================================
+class: small-code
+
+Examples of code in IML
+```
+  x = TableGetVarData(JoyTbl, {"CaloriesperServing1936"});
+  rows = nrow(x);
+  sum_x = 0;
+  k = 0;
+  do i = 1 to rows;
+    if(x[i] ^= .) then do;
+        sum_x = sum_x + x[i];
+        k = k+1;
+      end;
+  end;
+  bar_x = sum_x/k;
+```
+
+Other constructs
+========================================================
+SAS allows constructs that include count and event iteration, i.e
+```
+do i=1 to 10 while(x<y);
+do i=2 to 20 by 2 until((x/3)>y);
+```
+
+Nested Iteration
+========================================================
+Multiple summations can generally be implement as nested interations. For example, assume data in the form $X_{i j k}$ (i.e. two-way data factorial with replication), with $i=1 \dots I$, $j= 1\dots J$ and $k= 1 \dots K$, we write the total sums of ways
+$$
+SS_{Total} = \sum _{i=1}^I  \sum _{j=1}^J \sum _{k=1}^K (x_{i j k}-\bar{x})
+$$
+
+========================================================
+as
+```
+for (i in 1:I) {
+  for (j in 1:J) {
+    for (k in 1:K) {
+      sum.x <- sum.x + x[i,j,k]
+    }
+  }
+}
+```
+
+Event Loops
+=======================================================
+We tend to use count iteration in statisics, because we usually know
+the size of our data, then know the number of necessary steps for analysis.
+
+However, sometimes we don't know how many steps a calculation will take, we only know what a result should be. To illustrate this, we can convert a count loop to an event loop by
+
+======================================================== 
+class: small-code
+```{r}
+sum.x <- 0
+k <- 0
+max.i <- length(x)
+i<- 1
+while (i<=max.i) {
+  if(!is.na(x[i])) {
+    sum.x <- sum.x + x[i]
+    k <- k+1
+  }
+  i <- i+1
+}
+sum(sum.x/k)
+mean(x,na.rm=TRUE)
+```
+
+======================================================== 
+Note that the syntax for a comparable C `for` loop is actually a shorthand for the example `where` loop.
+
+```
+for(i=0; i<k; i++) {
+  <statements>
+}
+```
+
+Discussion questions
+========================================================
+class: small-code
+
+What are the differences in memory or execution speed between
+```
+x <- (1:10e8)
+for(i in 1:length(x)) ...
+for(i in x) ...
+i <- 1
+while (i<(length(x)+1)) {
+   ...
+   i <- i+1
+}
+```
+How would you test this?
+
+========================================================
+Consider this code
+```
+if(value>0) {
+  res1 = "is positive"
+} else if(value < 0) {
+  res1 = "is negative"
+} else {
+  res1 = "is zero"
+}
+```
+What is the scope of res1? Is there a similar scoping rule inside a for loop? Does IML have similar scoping rules for variable local to decision and repetition blocks?
+
+Selection
+========================================================
+C family languages support a selection expression, of the form
+
+```
+switch (<variable>) {
+  case (<value1>):  <expression1>; break;
+  case (<value2>):  <expression2>; break;
+  ...
+  default:  <expressioni>; break;
+}
+```
+
+========================================================
+
+which is equivalent to
+```
+if (<variable>==<value1>) {
+  <expression1>;
+elseif (<variable>==<value2>) {
+  <expression2>
+  ...
+} else {
+  <expressioni>;
+}
+
+```
+
+========================================================
+
+What is the equivalent syntax in R or SAS?
+
+
+
+========================================================
+- Suppose we are in the midde of an iterative (for) loop, and we find test for a condition that allows us to exit out of the loop without processing the rest of the values. How do we exit a for loop, in R or SAS?
+
+- What is the difference betwee a pre-test and post-test loop? Do R and SAS have syntax to support both kinds of loop syntax?
+
+- What is the result of `ifelse/ifn` when the condition evaluates to an array?
+
+========================================================
+- Does an if/else statement require that all statements for each condition be evaluated?
+
+What about `ifelse` and `ifn`. That is, suppose that
+```
+if(a>b) {
+  a.function()
+} else {
+  b.function()
+}
+```
+
+where `a.function` and `b.functions` are functions that can raise errors. Compare with 
+
+```
+ifelse(a<b,a.function(),b.function())
+```
+
+
+
+Recursion
+========================================================
+
+Factorial
+========================================================
+To illustrate the differences, we consider the factorial function,
+$$
+n! = \prod _{k=1}^n k = 1(2)...(n-1)(n) = n(n-1)...(2)(1)
+$$
+
+
+This is sometimes defined recursively as
+
+$$
+n! =  
+\begin{cases}
+  1 & n=1 \\
+  n \times (n-1)! & otherwise \\
+ \end{cases}
+$$
+
+==============================
+
+We can work through this by defining factorial functions, using different methods of iteration. The most obvious implementation from the iterative definition:
+```{r}
+fact.for <- function(n) {
+  prod <- 1
+  for (i in 1:n) {
+    prod <- prod*i
+  }
+  return(prod)
+}
+```
+
+========================================================
+Compare with the built-in function
+```{r}
+factorial(10)
+fact.for(10)
+```
+
+We can reverse the order of the sequence, and it doesn't affect this implementation.
+
+========================================================
+
+```{r}
+fact.for <- function(n) {
+  prod <- 1
+  for (i in n:1) {
+    prod <- prod*i
+  }
+  return(prod)
+}
+fact.for(10)
+```
+
+========================================================
+class: small-code
+
+Now implement using an event loop.
+
+Note that this is a **dangerous** version.
+
+```{r}
+fact.while <- function(n) {
+  prod <- 1
+  while(n!=1) {
+    prod <- prod*n
+    n <- n-1
+  }
+  return(prod)
+}
+fact.while(10)
+```
+
+========================================================
+class: small-code
+
+Why is this dangerous?
+
+What would happen if `n` is less than 1?
+```{r,eval=FALSE}
+fact.while <- function(n) {
+  prod <- 1
+  while(n!=1) {
+    prod <- prod*n
+    n <- n-1
+  }
+  return(prod)
+}
+#don't do this
+fact.while(-2)
+```
+
+========================================================
+
+*Safer* version.
+
+```{r}
+fact.while <- function(n) {
+  prod <- 1
+  while(n>1) {
+    prod <- prod*n
+    n <- n-1
+  }
+  return(prod)
+}
+fact.while(-10)
+```
+
+
+========================================================
+Why do we need to review the safe and unsafe versions of `while` loops?
+
+Let's go back to the recursive definition:
+
+$$
+n! =  
+\begin{cases}
+  1 & n=1 \\
+  n \times (n-1)! & otherwise \\
+ \end{cases}
+$$
+
+========================================================
+
+This would lead directly to an **unsafe** implementation:
+
+```{r}
+fact.recursive <- function(n) {
+  if(n==1) { 
+    return(1) 
+  } else { 
+    return(n*fact.recursive(n-1)) 
+  }
+}
+```
+
+
+========================================================
+
+The *safe* version requires a bit of more thought.
+
+```{r}
+fact.recursive <- function(n) {
+  if(n<2) {
+    return(1)
+  } else {
+    return(n*fact.recursive(n-1))
+  }
+}
+fact.recursive(10)
+```
+
+========================================================
+class: small-code
+
+Note, however, the similarities between the two implementations:
+
+```{r,eval=FALSE}
+fact.while <- function(n) {
+  prod <- 1
+  while(n>1) {
+    prod <- prod*n
+    n <- n-1
+  }
+  return(prod)
+}
+fact.recursive <- function(n) {
+  if(n<2) {
+    return(1)
+  } else {
+    return(n*fact.recursive(n-1))
+  }
+}
+```
+
+
+
+========================================================
+class: small-code
+  
+One way to visualize the difference is to use the `trace` function.
+```{r}
+trace(fact.while)
+trace(fact.recursive)
+fact.while(5)
+fact.recursive(5)
+```
+
+========================================================
+Another is interactive debugging:
+```{r,eval=FALSE}
+debug(fact.recursive)
+fact.recursive(5)
+```
+
+Recursive Macros
+========================================================
+class: small-code
+
+It is possible to define SAS macros to perform recursive operations. However, we must remember that macro statements are not necessarily evaluated during macro resolution. This macro produces an expected result:
+
+```
+%macro FactMacro(n);
+  %if &n<2 %then
+    1;
+  %else
+    &n*%FactMacro(%eval(&n-1));
+%mend;
+
+%let fac5 = %FactMacro(5);
+%put Factorial 5 = %eval(&fac5);
+```
+
+========================================================
+While this macro does not:
+```
+%macro FactMacro(n);
+  %if &n<2 %then
+    1;
+  %else
+    &n*%FactMacro(&n-1);
+%mend;
+
+%let fac5 = %FactMacro(5);
+%put Factorial 5 = %eval(&fac5);
+```
+
+========================================================
+Why use recursion?
+
+This is a relatively simple example that can be implemented with several types of control structures. There are, however, problems that are simpler to think about and implement recursively.
+
+Discussion question: What are examples of problems in statistics or data science that might be simpler with recursion?

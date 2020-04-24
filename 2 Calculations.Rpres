@@ -1,0 +1,510 @@
+
+<style>
+.tiny-code pre code {
+  font-size: 1.02em;
+}
+.small-code pre code {
+  font-size: 1.2em;
+}
+.medium-code pre code {
+  font-size: 1.4em;
+}
+</style>
+
+
+Calculations
+========================================================
+autosize: true
+font-family: 'Garamond'
+
+## Statistical Programming
+
+
+Concepts
+========================================================
+
+- Statements
+- Variables and Constants
+- Variable declaration
+- Variable assignment
+- Built-in functions
+- Mathematical operators
+- Relational operators
+
+
+Statements
+========================================================
+Statements are the fundamental executable units of the language.
+
+The statements we've seen in R are lines of text, terminated by a newline/carriage return (invisible) character. This character is typed by pressing the enter key and initiates the Evaluate step of the REPL. Multiple executable statements may be combined in a single line using a semicolon:
+
+```{r}
+s_i <- 1078.6; s_j <- 1496.2
+```
+
+========================================================
+In SAS, statements are typically terminated using the semicolon, and there may be multiple statements per line of text. One common error in writing SAS code is to forget to include a semicolon.
+
+### Compiles
+```
+s_i = 1078.6; s_j = 1496.2;
+```
+
+### Error
+```
+s_i = 1078.6; s_j = 1496.2
+```
+
+Variables and Constants
+========================================================
+We could use R just as a calculator, entering values as we need them. 
+```{r}
+qt(1 - 0.05/2,18+18-2) * sqrt(((18-1) * 1078.6^2 + (18-1) * 1496.2^2) / ((18-1) + (18-1)) * (1/18 + 1/18))
+```
+
+========================================================
+Instead we use variables to store values, to be reference later.
+
+The statement
+```{r}
+s_i <- 1078.6
+```
+assigns a numeric constant value to the variable named `s_i`.
+
+
+The constant `1078.6` always evaluates to itself:
+```{r}
+1078.6
+```
+
+========================================================
+while a variable evaluates to its most recently assigned value
+
+```{r}
+s_i
+```
+
+... unless it hasn't been assigned.
+
+```
+s_k
+> s_k
+Error: object 's_k' not found
+```
+
+========================================================
+
+Note that R has an implicit `print` statement when a variable name is entered in REPL. In SAS, we need to call `print` (or some equivalent function) to see how a variable or statement is evaluated.
+```
+s_i = 1078.6;
+print(s_i);
+print(s_j);
+```
+
+Value Types
+========================================================
+
+Most of the values we use in statistical programming are
+- Numeric
+- Text
+- Boolean
+
+
+Types in R
+========================================================
+To illustrate types in R, we can examine constants by calling functions:
+
+
+### Numeric (decimal)
+```{r}
+class(1078.6)
+typeof(1.0786e3)
+```
+
+========================================================
+### Numeric (integer)
+```{r}
+class(18L)
+typeof(18L)
+```
+
+========================================================
+### Text (string)
+
+```{r}
+class("Year")
+typeof("Year")
+```
+
+========================================================
+### Boolean
+```{r}
+class(TRUE)
+typeof(FALSE)
+```
+
+
+Numerical Values (SAS)
+========================================================
+
+We can't examine variables dynamically in SAS as we can in R, but we can use
+`proc contents` to get similar results:
+
+```
+data numbers;
+  m_i = 2123.8;
+  m_j = 3.0519e3;
+  n_i = 18;
+  year = "Year";
+  bool = 0;
+run;
+
+proc contents data=numbers;
+run;
+```
+
+Special Values and Constants
+========================================================
+class: small-code
+Certain common values, like $\pi$, $\epsilon$ or the largest possible numeric value (in computer terms), are available as named constants:
+```{r}
+pi
+.Machine$double.eps
+.Machine$double.xmax
+```
+
+========================================================
+```
+proc iml;
+  print(constant("pi"));
+  print(CONSTANT('BIG'));
+  CONSTANT('MACEPS')
+quit;
+```
+
+($\epsilon$ is the smallest possible values, such that $1+\epsilon > 1$)
+
+========================================================
+
+The are also specially named constants for missing values, NA in R and . in SAS. We've also seen that we can use $\infty$ as a constant in R.
+
+```{r}
+1/0
+```
+
+R also supports the constant 'Not a Number':
+```{r}
+sqrt(-1)
+```
+
+========================================================
+SAS uses different conventions for non-computable numbers:
+
+```
+proc iml;
+  print(sqrt(-1));
+  print(1/0);
+quit;
+```
+
+
+
+Factors or Class Values
+========================================================
+Both SAS and R allow for discrete or categorical data (as opposed to continuous numeric data). We'll just note this now; we won't do much with discrete data until we start working with data tables.
+
+
+Mathematical Operators
+========================================================
+
+Mathematical operators are like functions, in that they accept one or two
+numeric values as parameters and return numeric values. 
+
+What differentiates
+them from functions is that binary operators tend to use **infix**
+notation - the operator is between the two parameters. They also don't
+require parenthesis to denote a parameter list.
+
+========================================================
+
+Consider, in contrast, LISP, where all functions, even operators, are **prefix** notation. The minus operator returns a negation of the input when there is a single value, and sequentially subtracts the remainder of the input from the first value, if there are more than one parameter.
+
+```
+(- 3)
+(- 3 2)
+(- 5 2 1)
+```
+
+========================================================
+You might used **postfix** notation if you've used a Hewlett-Packard RPN
+calculator, that is,
+
+```
+3 2 +
+```
+
+Some mathematical notation is postfix. For example, matrix transpose is represented as $\mathbf{X}^t$, but would be entered in R as `t(X)`
+
+Operators in R
+========================================================
+
+Why is this relevant? In R, it is possible to define new operators, and it helps to understand that operators are functions. We can, for example, invoke the addition function by
+```{r}
+'+'(1,2)
+```
+There are some popular libraries, particularly in the 'tidyverse' that provide a large number of operators.
+
+Common mathematical operators
+========================================================
+
+As we see below, there is one major difference between the sets of R and SAS operators:
+
+Operation | R | SAS
+----------|---|------
+$x + y$ | `x+y` | `x+y`
+$x - y$ | `x-y` | `x-y`
+$x \times y$ | `x*y` | `x*y`
+$x \div y$ | `x/y` | `x/y`
+$x^y$ | `x^y` | `x**y`
+negation | `-x` | `-x`
+grouping | `()` | `()`
+
+
+Order of Operations
+========================================================
+
+For the most part, mathematical operators follow the standard PEDMAS order of operations:
+
+- parenthesis
+- exponentiation 
+- multiplication or division
+- addition or subtraction
+- operations of equal precedence performed left to right
+
+
+Variables
+========================================================
+We use variable names store and access values in computer memory.
+There are typically 3 phases in working with variables.
+- Declaration
+- Assignment
+- Access
+
+Variable declaration
+========================================================
+
+User declared variables allocate space for storing data. Rules for declaring
+identifiers include
+
+### R
+
+- Can be a mix of letters, digits, underscore (`_`) or
+period (`.`)
+
+- Must start with letter or period. If starting with a period, the
+second character cannot be a digit.
+
+### SAS
+
+SAS as multiple options for keywords. The default option specifies:
+- Can be a mix of letter, digits and underscore.
+- Must begin with a letter or underscore.
+
+========================================================
+
+For both languages, keywords and or reserved words cannot be used as
+identifiers for user variables. Some are obvious; we've seen `PROC`
+and `DATA`. 
+
+
+For a complete listing of reserved words in R, type `?Reserved`.
+
+
+SAS reserved words depend on the module (or PROC) in use; a broad overview of reserved words can be found by reading the SAS Refrence on Statments,
+
+http://support.sas.com/documentation/cdl/en/lestmtsref/63323/HTML/default/viewer.htm
+
+========================================================
+Note that a variable can be declared and assigned in a single step in R and IML, without any additional syntax, but SAS macro language requires the use of `%let` (or similar) when declaring macro variables.
+
+
+Variable assignment
+========================================================
+
+Variable assignment occurs when a variable is assigned a value by the user. In the examples we've seen, variable assignment has followed directly from variable declaration. 
+
+R is a late binding language; this means that R variable types aren't determined until they are evaluated. This is in contrast to static typed languages, where the type variable must be known at compile time. 
+
+This also means that in R, variables don't need to be declared before they are assigned.
+
+========================================================
+In constrast, SAS (aside from IML) behaves like a statically typed language. We see this in the DATA, where most data is assumed to be numeric, but we need to declare text variables.
+
+We also see variable declaration syntax in the macro `%let`.
+
+
+Assignment Operator
+========================================================
+SAS uses `=` as the assignment operator, and as the equality
+operator. 
+
+Many languages use different operators for each operation. For
+example C uses `=` for assignment and `==` for
+equality, or Pascal with `:=` for assignment.
+
+R has three different assignment operators : `=`, `<-`
+and `<<-`, not counting the rightward assignment operators
+`->` and `->>`. In most cases these are equivalent;
+we'll cover the differences when we discuss **scoping** rules. These
+all can be thought of special cases of the `assign` function,
+with different **environment** as parameters.
+
+========================================================
+
+For now, it is worthwhile to note that the assignment operators are
+themselves functions that return values, so we can do things like
+
+```{r}
+print(n_i <- (n_j <- 18))
+```
+
+instead of
+
+```{r}
+n_j <- 18
+n_i <- n_j
+print(n_i)
+```
+
+
+Accessing variables
+========================================================
+Typically, all we need to do to access a variable is to invoke its name.
+
+Mostly, we do this to use the value reference in the variable, to assign that variables value to another variable, or to examine the contents of the variable.
+
+```{r}
+n_j <- 18
+n_i <- n_j + 1
+print(n_i)
+```
+
+========================================================
+This is were macro programming is distinct from the imperative style we've seen in R and SAS IML. Macro programming involves mostly text manipulation; to evaluate (or *resolve*) a macro variable, we need to invoke a system function like 
+```
+%let s_i = 1050.0;
+%let s_j = 1496.2;
+%let n_i = 18;
+%let n_j = %eval(&n_i);
+%let s2  = ((&n_i-1)*&s_i**2 + (&n_j-1)*&s_j**2) / ((&n_i-1)+(&n_j-1));
+%put %sysevalf(&s2);
+```
+
+========================================================
+Note also that macro programming requires the `&` operator to force resolution of a variables value.
+
+Built-in Functions
+========================================================
+
+We've made use of a couple functions provided by R and SAS. 
+
+One of these, `sqrt`, is a common mathematical function provided by many languages. 
+
+The other, `qt`/`tinv`, is a statistical function that is not typically found in general programming languages.
+
+Some mathematical functions
+========================================================
+
+Function | R | SAS
+---------|---|-------------------
+$| x |$ | `abs(x)` | `abs(x)`
+$\sqrt{x}$ | `sqrt(x)` | `sqrt(x)`
+$\lfloor x \rfloor$ | `floor(x)` | `floor(x)`
+$\lceil x \rceil$ | `ceiling(x)` | `ceil(x)`
+$e^x$ | `exp(x)` | `exp(x)`
+$\sin$, etc. | `sin(x)` | `sin(x)`
+$\Gamma (x)$ | `gamma(x)` | `gamma(x)`
+
+
+
+
+
+Relational operators
+========================================================
+
+Relational operators are binary operators that accept two values and return
+a Boolean (TRUE/FALSE) value. 
+
+The values will typically be numeric, but
+relational operators may apply to any ordered type, such as text. Factors can be defined as ordered, as well.
+
+Common relational operators
+========================================================
+Operation | R | SAS |
+----------|---|-----|--------------
+$x < y$ | `x < y` | `x < y` | `x LT y`
+$x > y$ | `x > y` | `x > y` | `x GT y`
+$x \leqslant y$ | `x <= y` | `x <= y` | `x LE y`
+$x \geqslant y$ | `x >= y` | `x >= y` | `x GE y`
+$x = y$ | `x == y` | `x = y` | `x EQ y`
+$x \neq y$ | `x != y` | `x ^= y`, `x ~= y` | `x NE y`
+
+
+Note that SAS has different operators for "not equal"; this may be machine
+dependent. 
+Also note from our example that SAS doesn't have a distinct Boolean type.
+Much like C, a numeric value of 0, or missing (NULL), is interpreted as
+false; any other value is true.
+
+Using Operators
+========================================================
+
+Operators should be thought of as taking two values (generally 
+of the same type) and producing a single value. However, the produced
+value may of a different type than the original values.
+
+
+
+========================================================
+Thus, we can chain some operators
+```{r}
+1 + 2 + 3
+```
+
+but not others. This produces an error.
+
+```{r, eval=FALSE}
+1 > 2 > 3
+```
+
+========================================================
+
+We can make this work by grouping operations.
+```{r}
+1 > (2 > 3)
+(1 > 2) > 3
+```
+
+
+Discussion Questions
+========================================================
+
+- Why do 
+```{r,eval=FALSE}
+1 > (2 > 3)
+(1 > 2) > 3
+```
+give different values? (Hint - enter `as.numeric(TRUE)` in R). Will the same happen in SAS?
+
+========================================================
+
+- What is the relationship between the LSD and a Z score. Write a fragment of code comparing how both would be computed. Use the Z score for the standard error of a mean, $z_i = (x_i - \mu)/(\sigma / \sqrt(n))$
+
+- How would you modify the calculations of LSD to produce Tukey's Honest Signficant Difference?
+
+- How would you compute a check of the p-values Wansink and Payne cite for their F-ratios?
+
+========================================================
+
+- Where did we use $\infty$ in R? What was the equivalent in SAS? How would you compute the difference of the calculated values, where $\infty$ was needed?
+

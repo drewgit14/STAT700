@@ -1,0 +1,676 @@
+
+<style>
+.tiny-code pre code {
+  font-size: 1.2em;
+}
+.small-code pre code {
+  font-size: 1.2em;
+}
+.medium-code pre code {
+  font-size: 1.4em;
+}
+</style>
+
+Data Tables
+========================================================
+autosize: true
+font-family: 'Garamond'
+
+## Statistical Programming
+
+========================================================
+
+We've created a collection of vectors that are not logically connected to each other. As we've seen in the first homework, it's not that hard to package vectors into a data table. This simplifies working with a large number of values as a single unit.
+ 
+Data Tables 
+======================================================== 
+Data tables are two-dimensional structures similar to matrices with some key differences:
+
+1. Columns within tables are homogeneous data structures (similar to vectors) but can be heterogenous across columns (unlike matrices).
+
+2. Columns require indentifiers, but rows do not.
+
+3. Rows are typically assumed to represent observations from a single entity. 
+
+
+Concepts
+======================================================== 
+1. Creating data tables
+2. Importing data tables
+3. Indexing data tables
+4. Summarizing data tables
+
+
+
+Creating Data Tables
+========================================================
+
+In R, we can create data tables programmatically using the `data.frame` function. This is a constructor function, that creates an instance of class `data.frame`
+
+```{r}
+CookingTooMuch.dat <- data.frame(
+  Year=c(1936, 1946, 1951, 1963, 1975, 1997, 2006),
+  CaloriesPerRecipeMean = c(2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9),
+  CaloriesPerRecipeSD = c(1050.0, 1002.3, 1009.6, 1078.6, 1089.2, 1094.8, 1496.2)
+)
+class(CookingTooMuch.dat)
+```
+
+========================================================
+
+If we examine the structure of a data frame, we see that it is very similar to a list of vectors
+```{r}
+str(CookingTooMuch.dat)
+```
+
+========================================================
+class: small-code
+
+We can construct a frame from named vectors
+```{r}
+Year <- c(1936, 1946, 1951, 1963, 1975, 1997, 2006)
+CaloriesPerServingMean <- c(268.1, 271.1, 280.9, 294.7, 285.6, 288.6, 384.4)
+CaloriesPerServingSD <- c(124.8, 124.2, 116.2, 117.7, 118.3, 122.0, 168.3)
+CookingTooMuch2.dat <- data.frame(
+  Year,
+  CaloriesPerServingMean,
+  CaloriesPerServingSD
+)
+str(CookingTooMuch2.dat)
+```
+
+========================================================
+class: small-code
+
+Frames are typically constructed with the `=` operator. 
+
+The scope of the `=` assignment is local, and in this case means local to the data frame object. You can create a data frame without specifying the local variable name, but then R will attempt to create a name:
+```{r}
+CookingTooMuch3.dat <- data.frame(
+  Year,
+  c(12.9, 12.9, 13.0, 12.7, 12.4, 12.4, 12.7)
+)
+str(CookingTooMuch3.dat)
+```
+
+========================================================
+class: small-code
+
+The result is confusing if we try to use the `<-` operator
+
+```{r}
+CookingTooMuch4.dat <- data.frame(
+  Year <- c(1936, 1946, 1951, 1963, 1975, 1997, 2006),
+  CaloriesPerRecipeMean <- c(2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9)
+)
+str(CookingTooMuch4.dat)
+```
+
+SAS Data Tables
+========================================================
+
+We've seen an example of creating a data table from matrices in PROC IML:
+```
+proc iml;
+  Year = {1936, 1946, 1951, 1963, 1975, 1997, 2006};
+  CaloriesPerRecipeMean = {2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9};
+  CaloriesPerRecipeSD = {1050.0, 1002.3, 1009.6, 1078.6, 1089.2, 1094.8, 1496.2};
+
+  create CookingTooMuch var _all_;  
+  append;
+  close CookingTooMuch;
+quit;
+```
+
+========================================================
+More commonly, data will be entered in the data step, as we've also seen
+
+```
+data CookingTooMuch;
+input Year CaloriesPerRecipeMean CaloriesPerRecipeSD;
+datalines;
+1936 2123.8 1050.0
+1946 2122.3 1002.3
+1951 2089.9 1009.6
+1963 2250.0 1078.6
+1975 2234.2 1089.2
+1997 2249.6 1094.8
+2006 3051.9 1496.2
+run;
+```
+
+Data Step
+========================================================
+Considering general steps of compiling a SAS program, we are reminded that data tables are central to SAS, and we've seen examples of calculations and variable assignment in the data step. What we've done in this example is more typical of how the data step is used.
+
+Processing in the DATA step
+========================================================
+During the compile phase, SAS will create a program data vector to hold values. There is an implicit loop in the data step that reads and processes data, one line at a time. 
+
+========================================================
+In our example above, the first line of data is
+```
+1936 2123.8 1050.0
+```
+and these values are read into the variables named
+```
+Year CaloriesPerRecipeMean CaloriesPerRecipeSD
+```
+
+There are no other operations for this data. 
+
+
+=========================================================
+
+But we can add operations, as we've also seen:
+
+```
+data CookingTooMuch;
+input Year Mean SD;
+  Lower = Mean-SD;
+  Upper = Mean+SD;
+datalines;
+1936 2123.8 1050.0
+1946 2122.3 1002.3
+1951 2089.9 1009.6
+1963 2250.0 1078.6
+1975 2234.2 1089.2
+1997 2249.6 1094.8
+2006 3051.9 1496.2
+run;
+```
+
+
+
+========================================================
+
+The default behavior in the data step is move to the next data line when a 'new line' character is encountered. This can be suppressed using `@@`. This allows values to be entered in a continuous stream:
+
+```
+data CookingTooMuch;
+input Year Mean SD @@;
+  Lower = Mean-SD;
+  Upper = Mean+SD;
+datalines;
+1936 2123.8 1050.0 1946 2122.3 1002.3 1951 2089.9 1009.6 1963 2250.0 1078.6
+1975 2234.2 1089.2 1997 2249.6 1094.8 2006 3051.9 1496.2
+run;
+```
+
+Importing Data Tables
+========================================================
+
+More commonly, we read data stored in some delimited from. I most frequently use:
+```{r}
+PathToJoy = "../data/JoyOfCooking.csv"
+JoyOfCooking.dat <- read.csv(PathToJoy,header=TRUE)
+```
+
+
+========================================================
+`read.csv` is a convenience function for `read.table`; that is, this is a wrapper function with default values that are appropriate to the 'comma separated values' file format. 
+
+Commonly, data are read in as text files, with each line of text read in as a row.
+- `sep` determines the character used to separate columns within rows
+- `header`, if true, determines if column names are identified by the first row
+- `dec` denotes the decimal character
+- `comment.char` is useful if you want to document your data by including comments.
+
+========================================================
+`read.delim` is similar, but defaults to tab-separated columns. I tend to use CSV files more frequently; they tend to be easier to use with spreadsheets.
+
+
+========================================================
+
+SAS provides similar control over import,
+
+```
+filename JoyFile '/home/peterclaussen1/summer2018/data/JoyOfCookingSAS.csv';
+
+proc import datafile=JoyFile
+  dbms=csv
+  out=JoyOfCooking;
+  getnames=yes;
+run;
+```
+
+
+========================================================
+
+R Parameter | SAS Parameter
+------------|---------------
+`file`      | `filename`
+`header`    | `getnames`
+`read.*`    | `dbms`
+
+Note that `read.table` is a function that returns a data table as a value (that can be assigned to a variable), while `proc import` is more like a subroutine that creates a variable as a side effect.
+
+
+Accessing Values
+========================================================
+In many ways, a data frame is like a matrix, and we can access values much the same way. However, there are some additional features of data tables that simplify working with values in the tables. Primarily, data tables let us refer to the contents by name.
+
+We tend to use a few basic operations:
+
+- Selecting Columns
+- Selection Rows
+- Selecting individual cells.
+
+Selecting Columns
+========================================================
+class: small-code
+
+On great advantage of data tables is that we can reference a collection of values as a single entity, and we can reference those values by name. 
+
+In R, all these methods are equivalent:
+```{r}
+CookingTooMuch.dat$Year
+CookingTooMuch.dat[,c('Year')]
+with(CookingTooMuch.dat, Year)
+```
+
+
+========================================================
+In SAS, we would typically use a keyword like 'var' to identify columns of interest,
+
+```
+proc print data=CookingTooMuch;
+  var Year;
+run;
+```
+
+========================================================
+or we might create a subset of the data, keeping only specific variables
+```
+data CookingTooMuchYear;
+  set CookingTooMuch;
+  keep Year;
+run;
+
+proc print data=CookingTooMuchYear;
+run;
+```
+
+========================================================
+We can also specifically exclude variables.
+
+```
+data CookingTooMuchNoYear;
+  set CookingTooMuch;
+  drop Year;
+run;
+
+proc print data=CookingTooMuchNoYear;
+run;
+```
+
+========================================================
+The last can be done, roughly, in R, by
+
+
+```{r}
+CookingTooMuch.dat[,-1]
+```
+
+Operations on Columns
+========================================================
+Data columns in R are vectors, so we can manipulate these just like vectors, and assign the results to variables. If we try to assign a value to a variable that does not exist in a data frame, R will create it.
+
+```{r}
+JoyOfCooking.dat$TotalCalories1936 <- JoyOfCooking.dat$ServingsperRecipe1936 * JoyOfCooking.dat$CaloriesperServing1936
+
+JoyOfCooking.dat$TotalCalories2006 <- with(JoyOfCooking.dat, ServingsperRecipe2006 * CaloriesperServing2006)
+```
+
+Selecting Rows
+========================================================
+
+We can also select rows by name
+```{r}
+CookingTooMuch.dat['2',]
+```
+
+========================================================
+class: small-code
+The default row names aren't very interesting, but we can create our own, if necessary. In this example, I'm using editions
+
+```{r}
+row.names(CookingTooMuch.dat) <-
+  c('Second Edition','Third Edition','Fourth Edition','Fifth Edition','Sixth Edition','Seventh Edition','Eight Edition')
+CookingTooMuch.dat
+
+```
+
+========================================================
+I might like to try author/editor, but R requires unique names for both rows and columns.
+
+This causes an error:
+```{,eval=FALSE}
+row.names(CookingTooMuch.dat) <-
+  c('Second','Rombauer','Rombauer','Becker',
+    'Becker','Guarnaschelli','Becker')
+```
+
+
+========================================================
+Data tables will generally have two properties, column names (the default for `names`) and `row.names`
+```{r}
+names(CookingTooMuch.dat)
+row.names(CookingTooMuch.dat)
+```
+
+========================================================
+Unlike data frames, matrices aren't given names by default:
+```{r}
+MeansMatrix = matrix(c(2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9, 268.1, 271.1, 280.9, 294.7, 285.6, 288.6, 384.4, 12.9, 12.9, 13.0, 12.7, 12.4, 12.4, 12.7),ncol=3)
+row.names(MeansMatrix) 
+```
+
+========================================================
+As with matrices, we can use ranges. R allows data frames to behave like matrices.
+```{r}
+CookingTooMuch.dat[2:3,]
+```
+
+========================================================
+In SAS, we can use a modifier
+
+```
+proc print data=CookingTooMuch(firstobs=2 obs=3);
+run;
+```
+
+`obs` tells the data step when to stop processing, `firstobs` identifies when to start. In SAS, data tables are not transparently matrices.
+
+
+
+Accessing Cells
+========================================================
+
+While we can access individual elements as we would matrices, it's sometimes convenient to use names
+```{r}
+CookingTooMuch.dat[4,1]
+CookingTooMuch.dat['Fifth Edition','Year']
+```
+
+
+
+
+========================================================
+
+To get similar results in SAS, we would use a combination of row and column access
+
+```
+proc print data=CookingTooMuch(firstobs=4 obs=4);
+  var Year;
+run;
+```
+
+
+Scope
+========================================================
+
+These three expressions are functionally equivalent:
+```
+plot(CaloriesPerRecipeMean ~ Year, data=CookingTooMuch.dat)
+plot(CookingTooMuch.dat$Year, CookingTooMuch.dat$CaloriesPerRecipeMean)
+attach(CookingTooMuch.dat); plot(CaloriesPerRecipeMean ~ Year)
+```
+
+The first uses a formula to denote varables whose scope is within the data frame passes as `data`. The second extracts vectors that are local variables passed as parameters to the plot function. The third creates similarly named variables in the global environment, for all data columns in the data frame.
+
+========================================================
+```{r,echo=FALSE,fig.width=8, fig.height=4}
+plot(CaloriesPerRecipeMean ~ Year, data=CookingTooMuch.dat)
+plot(CookingTooMuch.dat$Year, CookingTooMuch.dat$CaloriesPerRecipeMean)
+attach(CookingTooMuch.dat); plot(CaloriesPerRecipeMean ~ Year)
+detach(CookingTooMuch.dat);
+```
+
+========================================================
+
+The third is tempting since it can save a lot of typing. It also has the potential to conflict existing variables:
+
+```{r}
+Year <- 2018
+Year
+attach(CookingTooMuch.dat)
+Year
+#Error
+#plot(CaloriesPerRecipeMean ~ Year)
+```
+
+========================================================
+```{r}
+conflicts(, TRUE)
+```
+
+
+========================================================
+```{r}
+detach(CookingTooMuch.dat)
+conflicts(, TRUE)
+```
+
+
+
+Table Summaries
+========================================================
+
+- Column Summaries
+- Subset Summaries
+
+Column Summaries
+========================================================
+class: small-code
+The default behavior of `summary` for data tables is to provide column summaries:
+
+```{r}
+summary(JoyOfCooking.dat[,c("Class","TooMuch","ServingsperRecipe1936","TotalCalories1936")])
+```
+
+
+
+========================================================
+In SAS, we might use `proc means` and `proc freq`.
+
+```
+proc means data=JoyOfCooking print;
+  var ServingsperRecipe1936 TotalCalories1936;
+run;
+
+proc freq data=JoyOfCooking;
+  table Class TooMuch;
+run;
+```
+
+Group Summaries
+========================================================
+
+We can also summarize one variable, using another variable to identify groups,
+```{r}
+aggregate(TotalCalories1936 ~ ServingsperRecipe1936, data = JoyOfCooking.dat, mean, na.rm=TRUE)
+```
+
+========================================================
+
+`aggregate` is a convenience function for `tapply`. The equivalent function call is
+
+```{r}
+with(JoyOfCooking.dat, tapply(TotalCalories1936, list(ServingsperRecipe1936), mean))
+```
+
+========================================================
+Thus, we can use any function that operates over vectors
+
+```{r}
+aggregate(TotalCalories1936 ~ ServingsperRecipe1936, data = JoyOfCooking.dat, length)
+```
+
+
+========================================================
+
+Again, similar functionality in SAS:
+```
+proc summary data=JoyOfCooking print;
+  class ServingsperRecipe1936;
+  var TotalCalories1936;
+run;
+```
+
+Contingency Tables
+======================================================== 
+class: small-code
+
+A similar convenience function is `table`, which is commonly used to create contingency tables. For instance, how many recipes in 2006 have the same number of servings as 1936?
+
+```{r}
+with(JoyOfCooking.dat, table(ServingsperRecipe1936, ServingsperRecipe2006))
+```
+
+======================================================== 
+This is approximately equivalent to
+```{r}
+with(JoyOfCooking.dat, tapply(TotalCalories1936, list(ServingsperRecipe1936, ServingsperRecipe2006),length))
+```
+
+======================================================== 
+Finally, a contigency table in SAS:
+```
+proc freq data=JoyOfCooking;
+   tables ServingsperRecipe1936*ServingsperRecipe2006;
+run;
+```
+
+========================================================
+### Discussion questions
+
+Are there SAS equivalents to
+
+```
+plot(CaloriesPerRecipeMean ~ Year, data=CookingTooMuch.dat)
+plot(CookingTooMuch.dat$Year, CookingTooMuch.dat$CaloriesPerRecipeMean)
+
+attach(CookingTooMuch.dat); plot(CaloriesPerRecipeMean ~ Year)
+```
+?
+
+========================================================
+- Can you set row and column names in a matrix (R or IML). How is this different than a data frame?
+
+- How are row names like primary keys in relational data base tables?
+
+- How could exclude the column name Year, without knowing the colum number (i.e. CookingTooMuch.dat[,-1])?
+
+========================================================
+
+Why do we need to call both `proc means` and `proc freq` to get results comparable to `summary`?
+
+
+
+
+
+Regression, Box-Whisker and Mosaic Plots
+========================================================
+Working with matrices, we assume data are homogeneous in all cells in the matrix. With data tables we have homogeneous data within columns but the data can be heterogenous across columns. Most commonly, columns will be a contain both continuous (`numeric`) columns and categorical (`factor` or `class`). We will use plots to illustrate the difference. 
+
+First, consider the values for Servings per Recipe. We can plot this as a regression plot, with 1936 as the independent variable.
+
+
+
+========================================================
+
+```{r,fig.width=8,fig.height=4}
+plot(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+```
+
+========================================================
+Further, we can compute a regression to get a numeric value relating serving per recipe at different years.
+
+```{r}
+reg1 <- lm(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+print(reg1)
+```
+
+========================================================
+
+```{r,fig.width=8,fig.height=4}
+plot(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+abline(reg1)
+```
+
+What does this tell us about the change in the number of servings, with respect to prior number of servings?
+
+
+========================================================
+class: small-code
+
+Now, suppose that we think of servings per recipe as a class; that is, there is a clas of 4-serving recipes, a class of 6 serving recipes, etc. We visualize this by
+```{r,fig.width=8,fig.height=4}
+JoyOfCooking.dat$ServingsperRecipe1936 <- as.factor(JoyOfCooking.dat$ServingsperRecipe1936)
+plot(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+```
+
+`plot` defaults to box-whisker when the independent variable is categorical and the dependent variable is continuous.
+
+
+========================================================
+class: small-code
+This also changes regression,
+
+```{r}
+reg2 <- lm(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+print(reg2)
+```
+
+Does this change our interpretation of the change in servings per recipe?
+
+========================================================
+class: small-code
+
+What happens with two factors?
+
+```{r, fig.width=4,fig.height=4}
+JoyOfCooking.dat$ServingsperRecipe2006 <- as.factor(JoyOfCooking.dat$ServingsperRecipe2006)
+plot(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+```
+
+========================================================
+class: tiny-code
+
+This creates a mosaic plot that complements a contingency table.
+
+```{r, echo=FALSE, fig.width=4,fig.height=4}
+plot(ServingsperRecipe2006 ~ ServingsperRecipe1936,data=JoyOfCooking.dat)
+with(JoyOfCooking.dat, table(ServingsperRecipe1936, ServingsperRecipe2006))
+```
+
+SAS Graphs
+========================================================
+```
+proc sgplot data=JoyOfCooking;
+  scatter x=ServingsperRecipe1936 y=ServingsperRecipe2006;
+  name='Continuous vs Continuous';
+run;
+```
+
+```
+proc sgplot data=JoyOfCooking;
+  vbox ServingsperRecipe2006 / category=ServingsperRecipe1936
+    name='Continuous vs Categorical';
+run;
+```
+
+```
+proc freq data=JoyOfCooking;
+  tables ServingsperRecipe1936*ServingsperRecipe2006 / plots=MOSAIC;
+run;
+```
+
+Discussion questions
+========================================================
+
+
+* What happens when we plot a categorical dependent variable, against a continuous independent variable? How would this affect our interpretation of a regression?
+
+

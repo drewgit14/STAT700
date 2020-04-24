@@ -1,0 +1,909 @@
+<style>
+.tiny-code pre code {
+  font-size: 1.02em;
+}
+.small-code pre code {
+  font-size: 1.2em;
+}
+.medium-code pre code {
+  font-size: 1.4em;
+}
+</style>
+
+Data Manipulation
+========================================================
+autosize: true
+font-family: 'Garamond'
+
+## Statistical Programming
+
+
+```{r, echo=FALSE}
+PathToJoy = "../data/JoyOfCooking.csv"
+JoyOfCooking.dat <- read.csv(PathToJoy,header=TRUE)
+CookingTooMuch.dat <- data.frame(
+  Year=c(1936, 1946, 1951, 1963, 1975, 1997, 2006),
+  CaloriesPerRecipeMean = c(2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9),
+  CaloriesPerRecipeSD = c(1050.0, 1002.3, 1009.6, 1078.6, 1089.2, 1094.8, 1496.2),
+  CaloriesPerServingMean = c(268.1, 271.1, 280.9, 294.7, 285.6, 288.6, 384.4),
+  CaloriesPerServingSD = c(124.8, 124.2, 116.2, 117.7, 118.3, 122.0, 168.3),
+  ServingsPerRecipeMean = c(12.9, 12.9, 13.0, 12.7, 12.4, 12.4, 12.7),
+  ServingsPerRecipeSD = c(13.3, 13.3, 14.5, 14.6, 14.3, 14.3, 13.0)
+)
+```
+
+Concepts
+========================================================
+1. Selection
+2. Merging Data
+2. Order
+3. Wide vs Long Data
+
+
+Selection
+========================================================
+
+Frequently, we want only portions of data that meet certain criteria. Those criteria will most commonly be expressed as a boolean conditions.
+
+
+========================================================
+We've already seen a simple example in the Control Structure presention, where I wanted to exclude missing data:
+
+```{r}
+x <- JoyOfCooking.dat$CaloriesperServing1936
+x <- x[!is.na(x)]
+head(x)
+```
+
+This takes advantage boolean array indices in R.
+
+
+
+========================================================
+class: tiny-code
+
+We can also use other boolean operators:
+
+```{r}
+JoyOfCooking.dat[JoyOfCooking.dat$ServingsperRecipe1936 %in% c(12,24), ]
+```
+
+========================================================
+class: tiny-code
+Note what happens when there are NA in the boolean index
+```{r}
+JoyOfCooking.dat$CaloriesperServing1936<50
+```
+
+========================================================
+class: tiny-code
+
+```{r}
+JoyOfCooking.dat[JoyOfCooking.dat$CaloriesperServing1936<50, ]
+```
+
+
+========================================================
+class: small-code
+
+The `subset` function is a convenience wrapper for the `[` operator:
+
+```{r}
+x <- subset(JoyOfCooking.dat,
+            !is.na(JoyOfCooking.dat$CaloriesperServing1936))
+head(x)
+```
+
+========================================================
+class: small-code
+For simplicity, I frequently define `mask` variables as the subset condition:
+
+```{r}
+mask <- !is.na(JoyOfCooking.dat$CaloriesperServing1936)
+x <- subset(JoyOfCooking.dat, mask)
+head(x)
+```
+
+========================================================
+class: small-code
+
+We can get the same result using a mask as row index
+```{r}
+x <- JoyOfCooking.dat[mask,]
+head(x)
+```
+
+
+========================================================
+But the subset function gives more flexibility; we can, for example, keep only certain columns:
+
+```{r}
+x <- subset(JoyOfCooking.dat,mask,
+            select=c("CaloriesperServing1936"))
+head(x)
+```
+
+
+========================================================
+Note that the Help entry for subset states
+
+> This is a convenience function intended for use interactively. For programming it is better to use the standard subsetting functions like [, and in particular the non-standard evaluation of argument subset can have unanticipated consequences.
+
+Selection in SAS
+========================================================
+While selection can be done in the data step,
+```
+data X;
+  set JoyOfCooking;
+  if(CaloriesperServing1936 ^= .) then output;
+run;
+```
+
+selection (and many other data manipulations) is frequently done using SQL :
+```
+proc sql;
+  create table X as select * from JoyOfCooking 
+    where(CaloriesperServing1936 ^= .);
+quit;
+```
+
+========================================================
+Or, selecting only specific columns:
+```
+proc sql;
+  create table X as select CaloriesperServing1936, RecipeName 
+    from JoyOfCooking 
+    where(CaloriesperServing1936 ^= .);
+quit;
+```
+
+Merging data
+========================================================
+We'll use as an example the case of Beef Stroganoff, from Joy Of Cooking.
+
+We have two recipes:
+```{r}
+# John Becker has two entries for butter, each used in a different step in the recipe. For simplicity, I've combined them into onw row.
+BeefStroganoff.1997.dat <- data.frame(
+  Amount = c(1.5, 3.5, 1.0, 1.0, 3.0, 1.0),
+  Measure = c('lb','Tbs','Tbs','cup','Tbs','tsp'),
+Ingredient = c('beef roast, tenderloin, raw, 0" trim',
+                'butter, salted',
+                'flour, all purpose, self rising, enriched',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon')
+)
+```
+
+========================================================
+and
+```{r}
+BeefStroganoff.2006.dat <- data.frame(
+  Amount = c(2.0, 2.0, 3.0, 1.0, 1.0, 1.0, 3.0, 1.0),
+  Measure = c('lb','Tbs','Tbs','ea','lb','cup','cup','Tbs'),
+Ingredient = c('beef roast, tenderloin, raw, 0" trim',
+               'oil, canola',
+                'butter, salted',
+               'onion, yellow, fresh, medium, 2 1/2"',
+               'mushrooms, fresh',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon')
+)
+```
+
+========================================================
+class: tiny-code
+```{r}
+BeefStroganoff.1997.dat
+BeefStroganoff.2006.dat
+```
+
+Simple merge
+========================================================
+class: tiny-code
+
+We can frequently use `*bind` functions to combine matrices and data tables:
+
+
+```{r}
+rbind(BeefStroganoff.1997.dat,BeefStroganoff.2006.dat)
+```
+
+========================================================
+
+But not always:
+```{r,eval=FALSE}
+cbind(BeefStroganoff.1997.dat,BeefStroganoff.2006.dat)
+Error in data.frame(..., check.names = FALSE) : 
+  arguments imply differing number of rows: 6, 8
+
+```
+
+========================================================
+For this merge, suppose we want a list of ingredients found in both recipes. One way to do this is to use the `merge` function:
+```{r}
+merge(BeefStroganoff.1997.dat,
+      BeefStroganoff.2006.dat)
+```
+
+<small>This is the base R version of `merge`. The `data.table` package provides a more flexible version supporting `data.table` objects.</small>
+
+========================================================
+class: small-code
+
+It appears the default merge is to merge only rows with all column values in common. We don't need to be so restrictive, so
+
+```{r}
+merge(BeefStroganoff.1997.dat,
+      BeefStroganoff.2006.dat,
+      by="Ingredient")
+```
+
+========================================================
+Note that it is possible to specify different columns. Suppose we have
+
+```{r}
+names(BeefStroganoff.2006.dat) <- c("Amount","Measure","Stuff")
+BeefStroganoff.2006.dat
+```
+
+========================================================
+class: tiny-code
+Then we use
+```{r}
+merge(BeefStroganoff.1997.dat,
+      BeefStroganoff.2006.dat,
+      by.x='Ingredient',
+      by.y='Stuff')
+```
+
+========================================================
+class: tiny-code
+
+Base R `merge` is only defined for row operations. If we want to merge data with different columns, we generally have to manage columns names manually.
+```{r}
+common.names <- names(BeefStroganoff.1997.dat)[names(BeefStroganoff.1997.dat) %in% names(BeefStroganoff.2006.dat)]
+rbind(BeefStroganoff.1997.dat[,common.names],
+      BeefStroganoff.2006.dat[,common.names])
+```
+
+Merging in SAS
+========================================================
+As with R, there are simple ways to merge data:
+```
+data BeefStroganoff;
+  set BeefStroganoff1997 BeefStroganoff2006;
+run;
+```
+
+========================================================
+and more specific merges:
+```
+data BeefStroganoff;
+  merge BeefStroganoff1997 BeefStroganoff2006;
+  by Ingredient;
+run;
+```
+<small>this is misleading - there are a lot more operations to make a sensible merge. As in most cases in SAS, PROC SQL usually provide a cleaner, more powerful syntax for data manipulation</small>
+
+Order
+========================================================
+Some statistical operations (e.g. computing quantiles) are simpler with sorted data. We can sort a single vector by
+
+```{r}
+sort(CookingTooMuch.dat$CaloriesPerRecipeMean)
+sort(CookingTooMuch.dat$CaloriesPerRecipeMean,decreasing = TRUE)
+```
+
+========================================================
+Frequently, though, we want an entire table, sorted by a single column. 
+```
+sort(CookingTooMuch.dat)
+Error in `[.data.frame`(x, order(x, na.last = na.last, decreasing = decreasing)) : 
+  undefined columns selected
+```
+
+========================================================
+One work around is to return an index from sort:
+```{r}
+sortedCpR <- sort(CookingTooMuch.dat$CaloriesPerRecipeMean,index.return=TRUE)
+sortedCpR
+```
+
+========================================================
+class: tiny-code
+and use this to reorder the original data table
+
+
+```{r}
+CookingTooMuch.dat[sortedCpR$ix,]
+```
+
+
+========================================================
+
+
+Two similar functions are
+```{r}
+CpM <- CookingTooMuch.dat$CaloriesPerRecipeMean
+rank(CpM)
+order(CpM)
+```
+
+========================================================
+`rank` assigns a relative position to the values in the input vector ...
+```{r}
+CpM
+rank(CpM)
+CpM[rank(CpM)]
+```
+
+========================================================
+... while `order` provides an index that can be used to sort the input vector
+```{r}
+CpM
+order(CpM)
+CpM[order(CpM)]
+```
+
+========================================================
+Note that these two functions may also differ with respect to handling ties or duplicate values.
+
+```{r}
+CpM <- c(CpM,CpM[c(2,6)])
+rank(CpM)
+rank(CpM,ties.method = "max")
+order(CpM)        
+```
+
+========================================================
+In SAS, it's easier to sort a data table:
+
+```
+proc sort data=CookingTooMuch out=SortedCooking;
+  by CaloriesPerRecipeMean;
+run;
+```
+
+In some cases, it's necessary; other PROC will complain if their not given sorted data.
+
+========================================================
+Of course, we expect a PROC RANK in SAS, while a PROC ORDER doesn't seem to be necessary.
+```
+proc rank data=CookingTooMuch out=RankCooking;
+  var CaloriesPerRecipeMean;
+  ranks CaloriePerRecipeRank;
+run;
+```
+
+
+Wide vs Long Data
+========================================================
+Much of the time, we work with univariate data - that is, data that contains only a single variable. More often, we work with bivariate data - data that have both a dependent and independent variable.
+
+========================================================
+The most interesting data, though, will be multivariate - multiple dependent and/or independent variables. In general, we refer to an analysis of multiple dependent variables as multivariate analysis, and analysis of a single dependent variable with multiple independent variables as multiple regression.
+
+========================================================
+Typically, multivariate analysis and multiple regression is done using data in the wide format. However, one case of multivariate analysis, called repeated measures analysis, is more easily done with data in the long format.
+
+* Wide format - each variable is represented by a single column.
+* Long format - all values in one column, variable identifiers in another column
+
+========================================================
+class: tiny-code
+
+Suppse we consider each recipe from the Joy of Cooking as an experimental unit, and measure, repeatedly, the total calories per recipe. We've recieved this data in the wide format.
+
+In the long form, we can consider how the repeated measure (Year) affects total calories.
+
+
+========================================================
+class: tiny-code
+
+We convert from the wide format to long by
+
+```{r}
+stacked.dat <- reshape(JoyOfCooking.dat, 
+                direction = "long",
+                varying = list(
+                  c("CaloriesperServing1936","CaloriesperServing2006"),
+                  c("CaloricDensity1936","CaloricDensity2006"),
+                  c("ServingsperRecipe1936","ServingsperRecipe2006")),
+                timevar = "Year",
+                ids=JoyOfCooking.dat$RecipeName,
+                drop = "RecipeName",
+                times=c(1936,2006))
+```
+
+========================================================
+class: tiny-code
+
+```{r}
+head(JoyOfCooking.dat)
+```
+
+========================================================
+class: tiny-code
+
+```{r}
+head(stacked.dat)
+```
+
+
+========================================================
+To simplify the rest of this presention, I'll define a `varying` list as
+```{r}
+v.list = list(
+    c("CaloriesperServing1936","CaloriesperServing2006"),
+    c("CaloricDensity1936","CaloricDensity2006"),
+    c("ServingsperRecipe1936","ServingsperRecipe2006")
+  )
+```
+                  
+Minimal Parameters
+========================================================
+class: small-code
+
+To use `reshape` to convert data from the wide format to the long format, we need three parameters:
+```{r}
+s1.dat <- reshape(JoyOfCooking.dat, 
+                       direction = "long",
+                       varying = v.list)
+```
+
+========================================================
+class: small-code
+```{r}
+head(s1.dat)
+```
+
+========================================================
+
+```
+stacked.dat <- reshape(JoyOfCooking.dat, 
+                       direction = "long")
+```
+
+will produce an error
+```
+Error in reshape(JoyOfCooking.dat, direction = "long") : 
+  no 'reshapeWide' attribute, must specify 'varying'
+```
+
+========================================================
+
+```
+stacked.dat <- reshape(JoyOfCooking.dat, 
+                       varying = v.list)
+```
+
+will produce an error
+```
+Error in match.arg(direction, c("wide", "long")) : 
+  argument "direction" is missing, with no default
+```
+
+========================================================
+
+To change the `time` column, use
+```{r}
+s2.dat <- reshape(JoyOfCooking.dat, 
+                direction = "long",
+                varying = v.list,
+                timevar = "Year")
+```
+
+
+========================================================
+class: small-code
+The value in this column comes from the relative column number in the original data.
+
+```{r}
+head(s2.dat)
+```
+
+========================================================
+The value in `time` doesn't tell us much; we can specify representative values:
+```{r}
+s3.dat <- reshape(JoyOfCooking.dat, 
+                direction = "long",
+                varying = v.list,
+                times=c(1936,2006))
+```
+
+========================================================
+class: small-code
+
+```{r}
+head(s3.dat)
+```
+
+========================================================
+class: small-code
+The default `id` is not particularly informative. We change this with:
+
+```{r}
+s4.dat <- reshape(JoyOfCooking.dat, 
+                direction = "long",
+                varying = v.list,
+                timevar = "Year",
+                times=c(1936,2006),
+                ids=JoyOfCooking.dat$RecipeName)
+```
+
+========================================================
+class: small-code
+
+```{r}
+head(s4.dat)
+```
+
+========================================================
+class: small-code
+
+This leaves us with two identical columns; we can drop one of them by:
+
+```{r}
+s5.dat <- reshape(JoyOfCooking.dat, 
+                direction = "long",
+                varying = v.list,
+                timevar = "Year",
+                ids=JoyOfCooking.dat$RecipeName,
+                drop = "RecipeName",
+                times=c(1936,2006))
+```
+
+========================================================
+class: small-code
+
+```{r}
+head(s5.dat)
+```
+
+Transpose?
+========================================================
+class: small-code
+In R, the transpose of a data frame sometimes makes sense
+```{r}
+t(CookingTooMuch.dat)
+```
+
+========================================================
+class: small-code
+Sometimes not
+```{r}
+t(BeefStroganoff.1997.dat)
+```
+
+========================================================
+
+In SAS, though, this is the PROC we use to reshape data.
+```
+proc sort data=JoyOfCooking out=SortedJoy;
+  by RecipeName TooMuch;
+run;
+proc transpose data=SortedJoy out=CaloriesperServingTemp(
+    rename=(col1=CaloriesperServing))
+  name=CaloriesperServingYear;
+  var CaloriesperServing1936 CaloriesperServing2006;
+  by RecipeName TooMuch;
+run;
+```
+
+========================================================
+PROC TRANSPOSE is one of those that expects sorted data:
+```
+proc transpose data=JoyOfCooking out=CaloriesperServingTemp(
+    rename=(col1=CaloriesperServing))
+  name=CaloriesperServingYear;
+  var CaloriesperServing1936 CaloriesperServing2006;
+  by RecipeName TooMuch;
+run;
+ERROR: Data set WORK.JOYOFCOOKING is not sorted in ascending sequence. The current BY group has RecipeName = Waffles and the next BY group has RecipeName = Apple Pie.
+```
+
+========================================================
+Again, we can work through from a minimal set of parameters, starting with the long version of everything in the table
+
+```
+proc transpose data=SortedJoy out=CaloriesperServingTemp;
+  by RecipeName;
+run;
+```
+
+========================================================
+We don't want all variables in one column, so just select two to be combined.
+
+```
+proc transpose data=SortedJoy out=CaloriesperServingTemp;
+  var CaloriesperServing1936 CaloriesperServing2006;
+  by RecipeName;
+run;
+```
+
+========================================================
+We lost the TooMuch flag, let's keep that:
+
+```
+proc transpose data=SortedJoy out=CaloriesperServingTemp;
+  var CaloriesperServing1936 CaloriesperServing2006;
+  by RecipeName TooMuch;
+run;
+```
+
+========================================================
+
+Add a better name for the original column identifier
+```
+proc transpose data=SortedJoy out=CaloriesperServingTemp
+  name=CaloriesperServingYear;
+  var CaloriesperServing1936 CaloriesperServing2006;
+  by RecipeName TooMuch;
+run;
+```
+
+========================================================
+
+And a better name for the value column
+```
+proc transpose data=JoyOfCooking out=CaloriesperServingTemp(
+    rename=(col1=CaloriesperServing))
+  name=CaloriesperServingYear;
+  var CaloriesperServing1936 CaloriesperServing2006;
+  by RecipeName TooMuch;
+run;
+proc print data=CaloriesperServingTemp;
+run;
+```
+
+========================================================
+A couple kludges in the outline. 
+
+I haven't found a good way to stack more than one set of columns, so I had to do this repeatedly and merge the tables. I also haven't found a good way to pass the actual Year value into the newly created CaloriesPerServingYear, this I did with a if block.
+
+
+Discussion questions
+========================================================
+
+What are
+* inner join
+* outer join
+* left join
+* right join 
+?
+
+Which of these terms apply to the merges shown in R and SAS? Can you demonstrate the others, using R or SAS code?
+
+========================================================
+What is meant by
+* one-to-one relation
+* one-to-many relation
+* many-to-many relation
+? 
+
+Illustrate these using the Beef Stroganoff recipes used in lecture.
+
+========================================================
+
+* What type of statistical operations or analysis might be performed more easily on sorted data?
+
+* What is the class of a transposed data frame? Why is this the expected class?
+
+
+========================================================
+Write an R equivalent to the SAS code:
+```
+data X;
+  set JoyOfCooking;
+  if(CaloriesperServing1936 ^= .) then output;
+run;
+```
+
+A bit of SQL
+===============================================
+
+* CREATE
+* SELECT
+
+Defining Tables
+===============================================
+Tables in SQL are usually defined using CREATE, along with variable names and types:
+```
+create table BeefStroganoff1997
+  (Amount num,
+   Measure char(3),
+   Ingredient varchar(50));
+
+```
+
+We can also create table from existing tables
+```
+create table BeefStroganoff2006
+  like BeefStroganoff1997;
+```
+
+===============================================
+We can add rows to a table using INSERT. There are a couple options:
+```
+insert into BeefStroganoff1997
+  values(1.5, 'lb','beef roast, tenderloin, raw, 0" trim')
+```
+and
+
+```
+insert into BeefStroganoff2006
+  set Amount=2, Measure='lb', Ingredient='beef roast, tenderloin, raw, 0" trim'
+
+```
+
+SELECT syntax
+===============================================
+
+SELECT is the workhorse function in SQL, in that most data manipulation will use some variation of a SELECT statement.
+
+Three commonly discussed types of SELECT are
+
+* Projection
+* Selection
+* Merge
+
+Projection
+===============================================
+Projection refers to selecting columns from a table. While this can mean selecting all columns,
+```
+select * 
+  from BeefStroganoff1997;
+```
+
+===============================================
+projection usually involves selecting only a subset of colums
+
+```
+select Amount, Ingredient 
+  from BeefStroganoff1997;
+```
+
+===============================================
+Projections can be used to rename columns
+```
+select Amount as HowMuch, Ingredient as Stuff
+  from BeefStroganoff1997;
+```
+
+===============================================
+More commonly, SELECT is used to subset by row:
+```
+select *
+  from BeefStroganoff1997
+  where Measure = 'Tbs';
+```
+
+===============================================
+but this can be combined with projection
+```
+select Amount as HowMuch, Ingredient as Stuff 
+  from BeefStroganoff1997
+  where Measure = 'Tbs';
+```
+
+===============================================
+We can also include sorting in the selection
+```
+select Amount, Ingredient 
+  from BeefStroganoff1997
+  where Measure = 'Tbs'
+  order by Amount;
+```
+
+===============================================
+and use the selection to create a new table
+```
+create table Tablespoons as
+  select Amount, Ingredient 
+    from BeefStroganoff1997
+    where Measure = 'Tbs'
+    order by Amount;
+```
+
+Selection and Macro variables
+===============================================
+A sometimes useful feature unique to SAS SQL is selection into macro variables:
+```
+select Amount, Measure
+  into :AmountMV, :MeasureMV
+  from BeefStroganoff1997
+  where Ingredient='mustard, dijon';
+```
+
+
+===============================================
+We can select multiple values into macro variable lists:
+```
+select Amount, Ingredient
+  into :AmountMV1-:AmountMV4, :IngredientMV1-:IngredientMV4    
+  from BeefStroganoff1997
+  where Measure='Tbs';
+```
+
+===============================================
+And combine macro variables across selections
+```
+select count(*) into :rows trimmed
+  from BeefStroganoff1997
+  where Measure='Tbs';
+      
+select Amount, Ingredient
+  into :AmountMV1-:AmountMV&rows, :IngredientMV1-:IngredientMV&rows
+  from BeefStroganoff1997
+  where Measure='Tbs';
+```
+
+Merges
+===============================================
+We'll finish with a brief discussion of merger, starting with a naive merger
+```
+select * from BeefStroganoff1997, BeefStroganoff2006;
+```
+
+Merge by adding rows
+===============================================
+
+Merging to tables can be done using select and insert:
+
+```
+create table Stroganoff 
+  as select * from BeefStroganoff1997;
+    
+insert into Stroganoff
+  select * from BeefStroganoff2006;
+```
+
+===============================================
+class: small-code
+
+We can might want to alter tables as we do this:
+```
+create table Stroganoff as select * from BeefStroganoff1997;
+  
+alter table Stroganoff add Year num;
+    
+update Stroganoff set Year=1997;
+  
+create table Working as select * from BeefStroganoff2006;
+  
+alter table Working add Year num;
+    
+update Working set Year=2006;
+     
+insert into Stroganoff select * from Working;
+
+```
+
+
+===============================================
+More commonly, we want to merge rows; these will be performed as JOIN
+
+```
+select BeefStroganoff1997.Ingredient, 
+       BeefStroganoff1997.amount as AmountX, 
+       BeefStroganoff1997.amount as AmountY
+  from BeefStroganoff1997 
+  left join BeefStroganoff2006
+       on BeefStroganoff1997.Ingredient =
+          BeefStroganoff2006.Ingredient;
+```
+
+
+Discussion Questions
+===============================================
+Note that I used the wrong units for sour cream in the 2006 recipe. 
+Suppose I don't have access to the original data file and I want to change the units from `cup` to `Tbs` (suppose the data came from a library, i.e. `Rda`).
+
+How would I do this programmatically in R or SAS SQL? What if I wanted to change this entry in the combined Stroganoff table from the SQL lecture?
+
+In the SQL lecture, I merged the two beef stroganoff recipes after adding columns to identify `Year`. How would this be done in R?
+
+

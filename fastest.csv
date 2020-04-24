@@ -1,0 +1,35 @@
+Make,Model,Initial Model Year,Engine,CC,Horsepower,MPH
+Hildebrand Wolfmuller,Motorcycle,1894,Parallel twin,1500,2.5,28
+Werner Motocyclette,Motocyclette,1898,Single,216,,22
+Werner New Werner,New Werner,1901,Single,333,3.25,30
+FN,Four,1911,Inline four,491,4,40
+Scott,two speed,1912,Parallel twin,532,3,50
+Williamson,Flat Twin,1913,Flat twin,964,,55
+Pope,Model L,1914,V-twin,999,12,70
+Cyclone,V-twin,1916,V-twin,996,25,85
+Excelsior,V-twin,1918,V-twin,992,20,80
+Brough Superior,SS100,1925,V-twin,988,45,100
+Brough Superior,SS100 Pendine,1927,V-twin,981,45,110
+Brough Superior,SS100 Alpine Grand Sports,1934,V-twin,996,75,110
+Crocker,V-twin,1936,V-twin,998,50,110
+Harley-Davidson,F Knucklehead,1941,V-twin,1212,40,100
+Vincent,Black Lightning,1949,V-twin,998,70,150
+BSA,Gold Star Clubman,1956,Single,499,42,110
+Norton,650SS,1962,Parallel twin,646,49,110
+BSA,Rocket 3,1968,Inline three,740,58,125
+Kawasaki,Z1,1973,Inline four,903,82,132
+Ducati,900SS,1975,V-twin,864,79,135
+Laverda,Jota,1976,Inline three,981,90,146
+Honda,VF1000R,1984,V-four,998,122,150
+Kawasaki,GPZ900R Ninja,1984,Inline four,908,115,158
+Kawasaki,Tomcat ZX-10,1988,Inline four,997,135,165
+Bimota,YB6 EXUP,1989,Inline four,1002,147,170
+Kawasaki,Ninja ZX-11,1990,Inline four,1052,145,176
+Honda,CBR1100XX Super Blackbird,1996,Inline four,1137,162,180
+Suzuki,Hayabusa,1999,Inline four,1299,173,194
+Kawasaki,ZX-12R,2000,Inline four,1199,178,187
+Kawasaki,ZX-14,2006,Inline four,1352,163,186
+MV Agusta,F4 R 312,2007,Inline four,998,183,193
+BMW,S1000RR,2009,Inline four,999,199,188
+Ducati,Panigale R,2013,V-twin,1198,202,202
+Kawasaki,Ninja H2R,2015,Inline four,998,310,249

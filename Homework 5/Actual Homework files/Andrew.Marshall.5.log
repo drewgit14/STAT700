@@ -1,0 +1,257 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 72         
+ 73         /**
+ 74         \file
+ 75         \ingroupmodule group
+ 76         
+ 77         \briefbrief description
+ 78         
+ 79         Exercise 5 for homework assignment 5;
+ 80         
+ 81         \version\$Revision: 1.0 $
+ 82         \author\$Author: Andrew Marshall $
+ 83         \date\$Date:2018-06-28 $
+ 84         
+ 85         /* options macrogen symbolgen mprint mlogic; */
+ 86         
+ 87         /*
+ 88          * General Instructions.
+ 89          * There are not unit tests for this exercise. This file defines the data
+ 90          * you will need for this homework.
+ 91          *
+ 92          *
+ 93          */
+ 94         
+ 95         %macro Homework4Data;
+ 96           Year = {1936 1946 1951 1963 1975 1997 2006};
+ 97           CaloriesPerRecipeMean = {2123.8 2122.3 2089.9 2250.0 2234.2 2249.6 3051.9};
+ 98           CaloriesPerRecipeSD = {1050.0 1002.3 1009.6 1078.6 1089.2 1094.8 1496.2};
+ 99           CaloriesPerServingMean = {268.1 271.1 280.9 294.7 285.6 288.6 384.4};
+ 100        
+ 101          CaloriesPerServingSD = {124.8 124.2 116.2 117.7 118.3 122.0 168.3};
+ 102          ServingsPerRecipeMean = {12.9 12.9 13.0 12.7 12.4 12.4 12.7};
+ 103          ServingsPerRecipeSD = {13.3 13.3 14.5 14.6 14.3 14.3 13.0};
+ 104          sample_size = 18;
+ 105          tenth_increment = 0.10;
+ 106          hundredth_increment = 0.100;
+ 107          idx_1936 = 1;
+ 108          idx_2006 = dimension(CaloriesPerRecipeMean)[2];
+ 109          idxs36_07 = {idx_1936, idx_2006};
+ 110          alpha=0.05;
+ 111        
+ 112        %mend;
+ 113        %macro Homework4DataTable;
+ 114          data CookingTooMuch;
+ 115            input Year CaloriesPerRecipeMean CaloriesPerRecipeSD CaloriesPerServingMean CaloriesPerServingSD
+ 115      ! ServingsPerRecipeMean ServingsPerRecipeSD;
+ 116            datalines;
+ 117            1936 2123.8 1050.0 268.1 124.8 12.9 13.3
+ 118            1946 2122.3 1002.3 271.1 124.2 12.9 13.3
+ 119            1951 2089.9 1009.6 280.9 116.2 13.0 14.5
+ 120            1963 2250.0 1078.6 294.7 117.7 12.7 14.6
+ 121            1975 2234.2 1089.2 285.6 118.3 12.4 14.3
+ 122            1997 2249.6 1094.8 288.6 122.0 12.4 14.3
+ 123            2006 3051.9 1496.2 384.4 168.3 12.7 13.0
+ 124          run;
+ 125        %mend;
+ 126        
+ 127        title 'Exercise 1';
+ 128        /* Optional - see R Markdown  */
+ 129        
+ 130        title 'Exercise 2';
+ 131        /* Optional - see R Markdown  */
+ 132        
+ 133        title 'Exercise 3';
+ 134        /* Optional - see R Markdown  */
+ 135        
+ 136        title 'Exercise 4';
+ 137        /* Optional - see R Markdown  */
+ 138        
+ 139        /*File import to be used for data plots*/
+ 140        title 'Exercise 5';
+ 141        filename Fastest '/home/drewmars70/summer2018/fastest.csv';
+ 142        
+ 143        proc import datafile=Fastest
+ 144          dbms=csv replace
+ 145          out=Fastestdat;
+ 146          getnames=yes;
+ 147        run;
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 148         /**********************************************************************
+ 149         *   PRODUCT:   SAS
+ 150         *   VERSION:   9.4
+ 151         *   CREATOR:   External File Interface
+ 152         *   DATE:      29JUN18
+ 153         *   DESC:      Generated SAS Datastep Code
+ 154         *   TEMPLATE SOURCE:  (None Specified.)
+ 155         ***********************************************************************/
+ 156            data WORK.FASTESTDAT    ;
+ 157            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 158            infile FASTEST delimiter = ',' MISSOVER DSD  firstobs=2 ;
+ 159               informat Make $21. ;
+ 160               informat Model $25. ;
+ 161               informat "Initial Model Year"N best32. ;
+ 162               informat Engine $13. ;
+ 163               informat CC best32. ;
+ 164               informat Horsepower best32. ;
+ 165               informat MPH best32. ;
+ 166               format Make $21. ;
+ 167               format Model $25. ;
+ 168               format "Initial Model Year"N best12. ;
+ 169               format Engine $13. ;
+ 170               format CC best12. ;
+ 171               format Horsepower best12. ;
+ 172               format MPH best12. ;
+ 173            input
+ 174                        Make  $
+ 175                        Model  $
+ 176                        "Initial Model Year"N
+ 177                        Engine  $
+ 178                        CC
+ 179                        Horsepower
+ 180                        MPH
+ 181            ;
+ 182            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 183            run;
+ 
+ NOTE: The infile FASTEST is:
+       Filename=/home/drewmars70/summer2018/fastest.csv,
+       Owner Name=drewmars70,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=29Jun2018:01:49:13,
+       File Size (bytes)=1625
+ 
+ NOTE: 34 records were read from the infile FASTEST.
+       The minimum record length was 33.
+       The maximum record length was 64.
+ NOTE: The data set WORK.FASTESTDAT has 34 observations and 7 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9598.81k
+       OS Memory           43040.00k
+       Timestamp           06/29/2018 07:01:22 AM
+       Step Count                        154  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     137
+       Page Swaps                        0
+       Voluntary Context Switches        11
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 34 rows created in WORK.FASTESTDAT from FASTEST.
+   
+   
+   
+ NOTE: WORK.FASTESTDAT data set was successfully created.
+ NOTE: The data set WORK.FASTESTDAT has 34 observations and 7 variables.
+ NOTE: PROCEDURE IMPORT used (Total process time):
+       real time           0.09 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              9598.81k
+       OS Memory           43300.00k
+       Timestamp           06/29/2018 07:01:22 AM
+       Step Count                        154  Switch Count  10
+       Page Faults                       0
+       Page Reclaims                     2625
+       Page Swaps                        0
+       Voluntary Context Switches        81
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           312
+       
+ 
+ 184        
+ 185        */Plot 1 - Categorical vs Categorical*/
+ 186        title 'Categorical vs Categorical';
+ 187        proc freq data=Fastestdat;
+ 188          tables Make*Engine / plots=MOSAIC;
+ 189        run;
+ 
+ NOTE: The graph in the PDF(WEB) destination will be rendered as an image due to the use of transparency and continuous legend.
+ NOTE: There were 34 observations read from the data set WORK.FASTESTDAT.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.82 seconds
+       user cpu time       0.51 seconds
+       system cpu time     0.02 seconds
+       memory              31548.06k
+       OS Memory           64684.00k
+       Timestamp           06/29/2018 07:01:23 AM
+       Step Count                        155  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     8862
+       Page Swaps                        0
+       Voluntary Context Switches        1267
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           2120
+       
+ 
+ 190        
+ 191        /*Plot 2 -Continuous vs Categorical*/
+ 192        title 'Continuous vs Categorical';
+ 193        proc sgplot data=Fastestdat;
+ 194          vbox Horsepower / category=Engine;
+ 195        run;
+ 
+ NOTE: PROCEDURE SGPLOT used (Total process time):
+       real time           0.26 seconds
+       user cpu time       0.06 seconds
+       system cpu time     0.02 seconds
+       memory              3093.43k
+       OS Memory           56904.00k
+       Timestamp           06/29/2018 07:01:23 AM
+       Step Count                        156  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     672
+       Page Swaps                        0
+       Voluntary Context Switches        712
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           568
+       
+ WARNING: The data for boxes is incomplete or invalid. Some boxes will not be drawn.
+ WARNING: The data for boxes is incomplete or invalid. Some boxes will not be drawn.
+ WARNING: The data for boxes is incomplete or invalid. Some boxes will not be drawn.
+ NOTE: There were 34 observations read from the data set WORK.FASTESTDAT.
+ 
+ 196        
+ 197        /*Plot 3 - 'Continuous vs Continuous'*/
+ 198        title 'Continuous vs Continuous';
+ 199        proc sgplot data=Fastestdat;
+ 200          scatter x=MPH y=Horsepower;
+ 201        run;
+ 
+ NOTE: PROCEDURE SGPLOT used (Total process time):
+       real time           0.22 seconds
+       user cpu time       0.06 seconds
+       system cpu time     0.01 seconds
+       memory              2735.71k
+       OS Memory           57416.00k
+       Timestamp           06/29/2018 07:01:23 AM
+       Step Count                        157  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     663
+       Page Swaps                        0
+       Voluntary Context Switches        243
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           568
+       
+ NOTE: There were 34 observations read from the data set WORK.FASTESTDAT.
+ 
+ 202        
+ 203        
+ 204        title 'Exercise 6';
+ 205        /* Optional - see R Markdown  */
+ 206        
+ 207        
+ 208        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 221        

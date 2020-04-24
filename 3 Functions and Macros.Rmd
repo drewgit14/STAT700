@@ -1,0 +1,240 @@
+---
+title: "3 Functions and Macros Homework"
+author: 'Andrew Marshall'
+date: '6/12/2018'
+output:
+  html_document: default
+version: 1
+---
+
+```{r,echo=FALSE}
+options(digits=12)
+unit.test.points=0
+fisher.lsd <- function(s_i, n_i, s_j, n_j, alpha=0.05) {
+  s2 <- ((n_i-1)*s_i^2 + (n_j-1)*s_j^2) / ((n_i-1)+(n_j-1))
+  critical.t <- qt(1 - alpha/2,n_i+n_j-2)
+  return(critical.t*sqrt(s2*(1/n_i + 1/n_j)))
+}
+```
+
+# General instructions.
+
+Exercise 1 is required and must be solved using both R and SAS. This exercise is worth 20 points, 10 points each for R and SAS. The R portion is included in this document and includes a unit test that checks the results of your calculations. 
+
+Exercises 2 is also required, but you may choose to use either R or SAS. This exercise is worth 10 points.
+
+Note that Exercise 1 and 2 both use the same unit tests as Homework 2. 
+
+Exercises 3-6 are optional; choose two and choose one language for each, as previously.
+
+A couple exercises ask you to refer to the `fisher.lsd` function from lecture, I've included this function above.
+
+# Exercise 1. (SAS and R, required)
+a. Write a function in R to return Cohen's $d$. Apply this function to calories per recipe, calories per serving and servings per recipe, for years 1936 and 2006. Compare the results to Homework 2.
+
+Use the `fisher.lsd` function from lecture as a template. Your function should accept two means and two standard deviations as parameters.
+
+b. Similarly, write a SAS macro or IML function to compute Cohen's $d$ and repeat a.
+
+
+```{r}
+d_12 <- 0
+#Variables for "calories per recipe" (CPR) to be input into function
+ m_1 <- 2123.8 #Mean CPR 1936
+ m_2 <- 3051.9 #Mean CPR 2006
+ s_1 <- 1050.0 #SD CPR 1936
+ s_2 <- 1496.2 #SD CPR 2006
+
+#Function created using Cohen's $d$
+d_12CPR <- function(m_1,m_2,s_1,s_2) {
+  d_12_var <- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+  return(d_12_var)
+}
+d_12 <- d_12CPR(m_1,m_2,s_1,s_2)
+d_12
+
+# Variables for "calories per serving" (CPS) to be input into function
+m_1 <- 268.1 #Mean CPS 1936
+m_2 <- 285.6 #Mean CPs 2006
+s_1 <- 124.8 #SD CPS 1936
+s_2 <- 118.3 #SD CPS 2006
+
+#Function created using Cohen's $d$ for CPS
+  d_12CPS <- function(m_1,m_2,s_1,s_2) {
+  d_12_var <- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+  return(d_12_var)
+} 
+d_12 <- d_12CPR(m_1,m_2,s_1,s_2)
+d_12
+
+# Variables for "servings per recipe" (SPR) to be input into function
+m_1 <- 12.9 #Mean SPR 1936
+m_2 <- 12.4 #Mean SPR 2006
+s_1 <- 13.3 #SD SPR 1936
+s_2 <- 14.3 #SD SPR 2006
+
+# Assigning formula to variable d_12 (SPR).
+  d_12SPR <- function(m_1,m_2,s_1,s_2) {
+  d_12_var <- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+  return(d_12_var)
+  }
+d_12 <- d_12SPR(m_1,m_2,s_1,s_2)
+d_12
+```
+
+```{r, unit test for exercise 1,echo=FALSE}
+if(abs(d_12-0.7181)<0.0001) {
+  print(unit.test.points <- unit.test.points+8)
+} else {
+  cat('d is not assigned the correct value','\n')
+}
+```
+
+
+# Exercise 2. (SAS or R, required)
+
+Using the formula for log-likelihood from Homework 2, Exercise 2, write a function that accepts `x`,`mu` ($\mu$) and `sigma` ($\sigma$) as parameters and returns the corresponding likelihood value. Make `mu` and `sigma` optional parameters with values `mu=0` and `sigma=1`. As with Homework 2, call your function with values of $x = \{ 0.1, 0.2 \}$ to pass the unit tests.
+
+
+
+```{r}
+
+
+# Assigning variables values for use with function calcuations
+mu <- 0
+sigma <- 1
+
+# function using x = 0.1 
+l_1 <- 0
+x <- 0.1
+l_1_func <- function(x,mu,sigma) { 
+l_2_var <- (1/(sigma * sqrt(2 * pi))) * (exp(-((x-mu)^2)/(2*sigma ^ 2)))    
+return(l_2_var)
+} 
+l_1 <- l_1_func(x,mu,sigma)
+l_1
+
+# function using x = 0.2
+l_2 <- 0
+x <- 0.2
+l_2_func <- function(x,mu,sigma) { 
+l_2_var <-(1/(sigma * sqrt(2 * pi))) * (exp(-((x-mu)^2)/(2*sigma ^ 2)))
+return(l_2_var)
+} 
+l_2 <- l_2_func(x,mu,sigma)
+l_2
+
+```
+
+### Unit Test (R)
+```{r, unit test for exercise 2,echo=FALSE}
+if(abs(l_1 - 0.396952)<1e-6) {
+  print(unit.test.points <- unit.test.points + 4)
+} else {
+  print("likelihood for x = 0.1 incorrect")
+}
+
+if(abs(l_2 - 0.391043)<1e-6 ) {
+  print(unit.test.points <- unit.test.points + 4)
+} else {
+  print("likelihood for x = 0.2 incorrect")
+}
+```
+
+
+# Exercise 3 (R or SAS)
+
+Write a function/macro that accepts two means, two standard devations, two `n` and an optional $\alpha$. Inside this function, call both the `fisher.lsd` function and your Cohen's $d$ function, and return the results as a list. Also include in your list the difference between the means and if the differences are significant. You can use the code for `lsd.test` from the course outline as a template.
+
+Call your function with Calories per Recipe values from 1936 and 2006, assign the results to `res3` and print the results as below. The return value from your function should match the `list` object.
+
+```{r}
+  #Variables for "calories per recipe" (CPR) to be input into function
+  m_1 <- 2123.8 #Mean CPR 1936
+  m_2 <- 3051.9 #Mean CPR 2006
+  s_1 <- 1050.0 #SD CPR 1936
+  s_2 <- 1496.2 #SD CPR 2006
+  
+
+  CohenD <- function(m_1,m_2,s_1,s_2) {
+  local.d_12 <- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+  return(local.d_12)
+  }
+  CohenD(m_1,m_2,s_1,s_2)
+  
+  
+  res3.func <- function(m_1,m_2,s_1,s_2,n_1,n_2, alpha=0.05){
+  local.LSD <- fisher.lsd(s_1,n_1,s_2,n_2)
+  local.CohenD <- CohenD(m_1,m_2,s_1,s_2)
+  local.Difference <- abs(m_1-m_2)
+  return (list(LSD = local.LSD,CohenD = local.Cohen,Difference=local.Difference,
+               Significant = local.Difference>=local.LSD))
+  }
+
+res3 <- list(Difference=0,LSD=0,CohenD=0,Significant=0) 
+print(res3)
+```
+
+If you do this in SAS, package the results in a data table. Use the code for `lsd_test` in `Stat700Outline.sas` as a template. 
+
+# Exercise 4 (R or SAS)
+
+For the R portion, write a function/macro to compute upper and lower confidence intervals for a count mean $x$, assuming the Poisson distribution, given (respectively) by
+
+$$
+\frac{\chi ^2 _{\alpha/2, 2x}}{2}, \frac{\chi ^2 _{1-\alpha/2, 2(x+1)}}{2}
+$$
+
+(Hint - homework 1 use the $t$-distribution and the `qt` function. You'll need to find the corresponding function for $\chi ^2$. In R, this function has parameters `p` ($\alpha/2$ or $1-\alpha/2$) and `df` ($2x$ and $2(x+1)$).
+
+Let your function accept the required parameter `x` and an optional parameter `alpha` with a default value of 0.05. Return a list with values for Lower and Upper. 
+
+Name your function `chisq.ci`. Call your function with `x=12` and `x=13`, and check your results against
+
+```{r}
+poisson.test(12,conf.level=0.95)
+poisson.test(13,conf.level=0.95)
+```
+ 
+(This will not be unit tested, we will check visually)
+
+If you choose SAS, you will need to write a macro that can be invoked in both PROC IML and in the DATA step. See the SAS template for instructions. You will still compare your results to the R code above.
+
+# Exercise 5 (R or SAS)
+
+Using the `fisher.lsd` function/macro as a template, write a function compute Tukey's HSD. You will be expected to research this formula. Expect to make three changes
+1. An extra parameter ($k$) for the number of means to be compared. Let this parameter default to 2.
+2. A different distribution function (not `qt`)
+3. A modification to the error term (but still use the pooled variance `s2`)
+
+Document your changes relative to the LSD function, preferably in literate code (that is, typeset the formula, etc). Cite your references. You can, if you wish, compare your result with an example from your reference, as long as you document the source.
+
+Calculate HSD using $\sigma$ and $n$ values for the years 1936 and 2006, also using values for $k=2$ and $k=7$; compare this to Fisher LSD for the same years.
+
+Name this function `tukey.hsd`.
+
+
+# Exercise 6 (R or SAS)
+
+Prepare a brief (~ 3-5 min.) video, literate document or user manual to guide a user through the steps required build or install an R library or SAS Macro library, using methods not covered in lecture. Some topcs include:
+
+### a. Create a SAS Compiled Stored Macro (`mstored`) library.
+
+###  Use R CMD BUILD and INSTALL
+   I demonstrated in lecture video how to build and install a simple library using RStudio. Demonstrate how to do this on your system, without using RStudio; instead using R from the command line (i.e. 'R CMD BUILD JoyOfCooking`)
+   
+### c. `devtools`
+For example, explain how this install command works, and what you need to use it.
+```
+devtools::install_github("Rdatatable/data.table")
+```
+
+Upload video, Word or PDF document to Dropbox. Expect that these submissions will be made available to all students, so provide a brief title for your topic. You may choose a topic not on this list; it should be related to building or installing R or SAS libraries. Post a comment in the Functions and Macros Discussion giving a brief outline if you choose a different topic. You may also choose to do this in a group, but each member will be expected to provide at least 3 minutes of content. Provide an outline on the Discussion forum for this option.
+
+Grading criteria will be similar to the criteria described for Discussions, listed in the course syllabus. If your initial submission does not score 9-10, I'll give you feed back and allow you to make changes before posting to the rest of the class.
+
+
+# Total points from Unit Tests
+```{r}
+unit.test.points
+```

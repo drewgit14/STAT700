@@ -1,0 +1,1047 @@
+<style>
+.tiny-code pre code {
+  font-size: 1.02em;
+}
+.small-code pre code {
+  font-size: 1.2em;
+}
+.medium-code pre code {
+  font-size: 1.4em;
+}
+</style>
+
+Processing Text
+========================================================
+autosize: true
+font-family: 'Garamond'
+
+## Statistical Programming
+
+
+Strings
+========================================================
+
+A string in most programming languages is simply a sequence of characters. Im many languages, strings are implemented as an array containing character values.
+
+Python, for example
+```
+RecipeName = 'Baked Apples Stuffed with Sausage'
+print(len(RecipeName))
+print(RecipeName[2])
+```
+
+========================================================
+In many cases, though, string arrays are *immutable*
+```
+RecipeName[2] = 'b'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'str' object does not support item assignment
+```
+
+========================================================
+
+In R and SAS, we can't work with text as if they were arrays.
+
+```{r}
+RecipeName = 'Baked Apples Stuffed with Sausage'
+class(RecipeName)
+length(RecipeName)
+RecipeName[2]
+```
+
+========================================================
+```
+proc iml;
+ RecipeName = 'Baked Apples Stuffed with Sausage';
+ print(length(RecipeName));
+ print(RecipeName[2]);
+quit;
+```
+
+========================================================
+So, the things you might do with arrays, 
+
+* element access (`[], [] <-`)
+* selection (`[i:j]`)
+* concatentation (`c( )`)
+
+========================================================
+are equivalently done with strings using functions
+
+* element access (`substr`)
+* selection (`substr`)
+* concatentation (`paste`)
+
+========================================================
+The are some operators that apply to strings, but will behave differently than you might expect for vectors, specifically binary operators.
+
+========================================================
+There are other operations on strings that don't have array equivalents. A couple important ones are
+
+* tokenizing (`strsplit`,`scan`)
+* partial comparison (grep)
+
+
+
+Creating Strings
+========================================================
+class: small-code
+
+String constants in code are generally declared using single or double quotes. Thus,
+```{r}
+Ingredient = c('beef roast, tenderloin, raw, 0" trim',
+                'butter, salted',
+                'flour, all purpose, self rising, enriched',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon')
+Ingredient
+```
+
+
+========================================================
+class: small-code
+
+However, strings in data frames are converted to factors:
+```{r}
+BeefStroganoff.1997.dat <- data.frame(
+  Amount = c(1.5, 3.5, 1.0, 1.0, 3.0, 1.0),
+  Measure = c('lb','Tbs','Tbs','cup','Tbs','tsp'),
+Ingredient = c('beef roast, tenderloin, raw, 0" trim',
+                'butter, salted',
+                'flour, all purpose, self rising, enriched',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon')
+)
+class(BeefStroganoff.1997.dat$Ingredient)
+```
+
+========================================================
+
+When importing tables, both R and SAS will attempt to interpret a data column as numeric. If any of the rows in a column are not numeric, the entire column will be interpreted as non-numeric.
+
+SAS will read in text, but columns are fixed-width and text may be truncated to padded so that values in a column have the same number of characters.
+
+========================================================
+
+The width can be declared in the data step by
+```
+data BeefStroganoff1997;
+input Amount Measure $ 5-7 Ingredient $ 9-50;
+datalines;
+1.5 lb  beef roast, tenderloin, raw, 0" trim
+3.5 Tbs butter, salted
+1.0 Tbs flour, all purpose, self rising, enriched
+1.0 cup stock, beef, prepared from recipe
+3.0 Tbs sour cream, cultured
+1.0 tsp mustard, dijon
+run;
+```
+
+
+========================================================
+class: small-code
+
+Generally, strings in a matrix or data table are padded to be the same length as the longest,
+
+```
+proc iml;
+  Ingredient = {'beef roast, tenderloin, raw, 0" trim',
+                'butter, salted',
+                'flour, all purpose, self rising, enriched',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon'};
+  do i = 1 to 6;
+  current = Ingredient[i,1];
+    print(nleng(current))[label=current];
+  end;
+quit;
+```
+
+========================================================
+class: small-code
+
+R strings will be variable length 
+```{r}
+Ingredient = c('beef roast, tenderloin, raw, 0" trim',
+                'butter, salted',
+                'flour, all purpose, self rising, enriched',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon')
+nchar(Ingredient)
+```
+
+========================================================
+`nchar` is not applicable to factors
+```
+nchar(BeefStroganoff.1997.dat$Ingredient)
+Error in nchar(BeefStroganoff.1997.dat$Ingredient) : 
+  'nchar()' requires a character vector
+```
+unless we coerce:
+```{r}
+nchar(as.character(BeefStroganoff.1997.dat$Ingredient))
+```
+
+========================================================
+and length is applied to the vector holding string values
+```{r}
+length(Ingredient)
+```
+
+Because of this, we need to be careful using length instead of `nchar`, and use `trim` for most string comparisons in SAS.
+
+============================================================
+class: tiny-code
+
+Data read in using `read.csv` are returned as data frames, so text in the file will be converted to factors
+
+```{r}
+PathToJoy = "../data/JoyOfCooking.csv"
+JoyOfCooking.dat <- read.csv(PathToJoy,header=TRUE)
+class(JoyOfCooking.dat$RecipeName)
+head(JoyOfCooking.dat)
+```
+
+
+
+
+Selection
+========================================================
+There are two similar functions for accessing elements within strings:
+```
+substr(x, start, stop)
+substring(text, first, last = 1000000L)
+```
+
+========================================================
+class: tiny-code
+
+With scalar parameters, these behave similarly,
+
+```{r}
+substr(RecipeName,2,8)
+substring(RecipeName,2,8)
+```
+
+========================================================
+... but not when given vectors
+
+```{r}
+substr(RecipeName,2:4,8:10)
+substring(RecipeName,2:4,8:10)
+```
+
+========================================================
+The indexing doesn't go backwards ...
+```{r}
+substr(RecipeName,4,2)
+substring(RecipeName,4,2)
+```
+
+========================================================
+... but they allow for modification of the strings
+```{r}
+substr(RecipeName,2,8) <- "2345678"
+RecipeName
+substring(RecipeName,2,8) <- "aked Ap"
+RecipeName
+```
+
+Element access
+========================================================
+What happens if we try to access just one character?
+```
+substr(RecipeName,2)
+  argument "stop" is missing, with no default
+```
+```{r}
+substring(RecipeName,2)
+```
+
+Remember the default parameter for substring?
+
+========================================================
+So,
+```{r}
+substr(RecipeName,2,2)
+```
+
+```{r}
+substring(RecipeName,2,2)
+```
+
+
+========================================================
+Substring in SAS doesn't behave the same as R:
+```
+proc iml;
+ RecipeName = 'Baked Apples Stuffed with Sausage';
+ print(substr(RecipeName, 2, 4));
+ print(substr(RecipeName, 2, 1));
+quit;
+```
+
+This function has the same parameters, but different meanings - the third parameter is length, not ending character.
+
+========================================================
+Just remember, unlike R or IML, all macro variables are strings.
+Quotes don't have meaning ...
+
+```
+%let RecipeName = Baked Apples Stuffed with Sausage;
+%put %substr(&RecipeName, 2, 4);
+
+%let RecipeName = "Baked Apples Stuffed with Sausage";
+%put %substr(&RecipeName, 2, 4);
+
+%let RecipeName = 'Baked Apples Stuffed with Sausage';
+%put %substr(&RecipeName, 2, 4);
+```
+
+========================================================
+
+Unless they're unbalanced, then SAS isn't happy and we need a special macro to make strings work:
+```
+/* Bad */
+%let BeefRoast = beef roast, tenderloin, raw, 0" trim;
+%put &BeefRoast;
+
+/* Good */
+%let BeefRoast = %Str(beef roast, tenderloin, raw, 0%" trim);
+%put &BeefRoast;
+```
+
+Concatentation
+========================================================
+
+If we concatenate strings, we will get vectors of strings
+```{r}
+beef.roast <- c('beef roast', 'tenderloin', 'raw', '0" trim')
+beef.roast
+```
+
+(we might expect this to work like `c(c(1),c(2, 3))`)
+
+========================================================
+
+If we want longer strings from shorter strings, we use `paste`
+```{r}
+paste('beef roast', 'tenderloin', 'raw', '0" trim')
+```
+
+========================================================
+Note how paste operates on vectors of strings
+```{r}
+beef.roast <- c('beef roast', 'tenderloin', 'raw', '0" trim')
+t(paste(beef.roast))
+paste(beef.roast,collapse=" ")
+```
+
+
+========================================================
+The default is to place spaces in between variables, this can be changed by
+
+```{r}
+paste('beef roast', 'tenderloin', 'raw', '0" trim',sep=', ')
+paste(beef.roast, collapse=', ')
+```
+
+========================================================
+Note how R mixes single and double quotes between input and output; we can change this a bit by
+```{r}
+cat(paste(beef.roast, collapse=", "))
+```
+
+=======================================================
+paste is handy for creating a series of similar variable names
+```{r}
+paste("Mean", c(1,2))
+paste(c("Mean", "SD"), c(1,2))
+paste(c("Mean", "SD"), c(1,2))
+```
+
+=======================================================
+
+or for building formula
+```{r}
+paste(paste(c("X"),c(1,2,3),sep=""),collapse=" + ")
+```
+
+
+Comparison 
+========================================================
+Suppose we have two vectors, and we compare them by
+
+```{r}
+apples <- c(2,4,6,8)
+oranges <- c(2,4,8,16)
+apples == apples
+apples == oranges
+```
+
+Vectors are compared element-wise.
+
+========================================================
+class: small-code
+
+Comparisons on strings is essentially the boolean sum of all pairwise character comparisons
+
+```{r}
+'Apples' == 'Apples'
+'Apples' == "Oranges"
+all(apples==apples)
+all(oranges==oranges)
+```
+
+
+
+========================================================
+
+as long as we remember that comparisons are case sensitive
+```{r}
+'Apples' == 'apples'
+tolower('Apples') == tolower('apples')
+```
+
+========================================================
+Similarly, in IML ...
+```
+proc iml;
+  print('Apples' = 'Oranges');
+
+  print('Apples' = 'apples');
+  print(lowcase('Apples') = lowcase('apples'));
+quit;
+
+```
+
+========================================================
+... and macro
+```
+%put Apples = Apples;
+%put %eval(Apples=Apples);
+%put %eval(Apples = Apples);
+%put %eval(Apples = Oranges);
+%put %eval(Apples = apples);
+%put %eval(%lowcase(Apples) = %lowcase(apples));
+```
+
+========================================================
+class: small-code
+
+There is an order to strings, that is also case sensitive:
+```{r}
+'apples' < 'baked'
+'apples' < 'Baked'
+'apples' < 'Apples'
+'apples' > 'Apples'
+```
+
+========================================================
+Similarly, in SAS
+```
+proc iml;
+  print('apples' < 'baked');
+  print('apples' < 'Baked');
+  print('apples' < 'Apples');
+  print('apples' > 'Apples');
+quit;
+
+```
+
+========================================================
+We can also perform comparisons on collections of strings.
+
+```{r}
+match('Apples', c("Baked", "Apples", "Stuffed", "with", "Sausage"))
+'Apples' %in% c("Baked", "Apples", "Stuffed", "with", "Sausage")
+```
+
+========================================================
+Note that these are not unique to strings, we can call `match` or `%in%` with most variable types in R. As such, these are equivalent to using the `==` operator:
+
+```{r}
+which('Apples' == c("Baked", "Apples", "Stuffed", "with", "Sausage"))
+any('Apples' == c("Baked", "Apples", "Stuffed", "with", "Sausage"))
+```
+
+When we work with text as data, we'll frequently be more interested in partial matches.
+
+Tokenizing
+========================================================
+A token in a string is like a word in a sentence; it's the natural subunit text (as opposed to characters, which might be better thought of as the subunit of the implementation). 
+
+Tokenizing can be thought as the inverse of concatentation, when there is a consistent delimiter defined (usually whitespace or commas). 
+
+========================================================
+In R, we tokenize strings by
+```{r}
+Flour <- c('flour, all purpose, self rising, enriched')
+strsplit(Flour,split=",")
+```
+
+========================================================
+class: small-code
+
+In R, `strsplit` returns lists. This allows `strsplit` to be called on vectors of strings, and return vectors of variable lengths
+```{r}
+strsplit(Ingredient,split=',')
+```
+
+========================================================
+`strsplit` is very literal about the characters it uses.
+```{r}
+Flour <- c('flour, all purpose, self rising, enriched')
+strsplit(Flour,split=" ")
+Flour <- c('flour, all purpose, self rising, enriched')
+strsplit(Flour,split=", ")
+```
+
+========================================================
+
+This is one reason to always use trim functions:
+```{r}
+Flour <- c('flour, all purpose, self rising, enriched')
+strsplit(Flour,split=",")
+lapply(strsplit(Flour,split=","),trimws)
+```
+
+========================================================
+class: tiny-code
+
+Just a reminder that strsplit returns lists and not vectors; `lapply` is your friend.
+
+
+
+```{r}
+lapply(strsplit(Ingredient,split=','),trimws)
+```
+
+========================================================
+class: tiny-code
+
+`split` can be a vector, but only one is used per string
+```{r}
+strsplit(Ingredient,split=c(',',' ','r'))
+```
+
+
+
+
+========================================================
+class: small-code
+
+SAS doesn't really support a single tokenizing function. In most cases, the `scan` function is used. `scan` takes a value the evaluates to text as the first parameter, an index as the second parameter, and an optional set of delimiters.
+
+It will frequenty be used in conjunction with `countw`, which takes the same text and delimiter parameters and returns the number of tokens in the text.
+
+========================================================
+class: small-code
+These will commonly be used in a loop:
+
+```
+data Flour;
+  input Description $ 1-50;
+  NumAdjectives = countw(Description, ','); 
+  do i = 1 to NumAdjectives; 
+    Adjective = trim(scan(Description, i, ','));
+    output;
+  end;
+  drop i NumAdjectives Description;
+  datalines;
+flour, all purpose, self rising, enriched
+run;
+```
+
+========================================================
+class: small-code
+
+`scan` will return an empty string if the specified number is greater than the number of tokens in the string, so this is sometimes used;
+
+```
+data Flour;
+  input Description $ 1-50;
+  i=1;
+  do while (trim(scan(Description, i, ',')) ne ''); 
+    Adjective = trim(scan(Description, i, ','));
+    output;
+    i=i+1;
+  end;
+  drop i Description;
+  datalines;
+flour, all purpose, self rising, enriched
+run;
+```
+
+========================================================
+class: small-code
+
+A more complicated example
+```
+data BeefStroganoff2006;
+  input Amount Measure $ 5-7 IngredientDescription $ 9-50;
+  Ingredient = scan(IngredientDescription, 1, ',');
+  NumAdjectives = countw(IngredientDescription, ','); 
+  do i = 2 to NumAdjectives; 
+    Descriptor = trim(scan(IngredientDescription, i, ','));
+    output;
+  end;
+  drop i NumAdjectives Amount Measure IngredientDescription;
+  datalines;
+2   lb  beef roast, tenderloin, raw, 0" trim
+2   Tbs oil, canola
+3   Tbs butter, salted
+1   ea  onion, yellow, fresh, medium, 2 1/2"
+1   lb  mushrooms, fresh
+1   cup stock, beef, prepared from recipe
+3   cup sour cream, cultured
+1   Tbs mustard, dijon
+run;
+```
+
+========================================================
+class: small-code
+
+Surprisingly, SAS doesn't define a `countw` macro. We can define one by
+
+
+```
+%macro CountWords(WordList);
+  %local i NextWord;
+  %let i=1;
+  %do %while (%scan(&WordList, &i) ne );
+    %let NextWord = %scan(&WordList, &i);
+    %let i = %eval(&i + 1);
+  %end;
+  /* The ith word was empty, so subtract one from count. */
+  %let count = %eval(&i - 1);
+  &count;
+%mend;
+```
+
+========================================================
+class: small-code
+
+But be warned, SAS macro programming can become very difficult with special characters
+
+```
+%macro CountWords(WordList, charlist=%str( ));
+  %local i NextWord;
+  %let i=1;
+  %do %while (%qscan(&WordList, &i, &charlist) ne );
+    %let NextWord = %scan(&WordList, &i);
+    %let i = %eval(&i + 1);
+  %end;
+  /* The ith word was empty, so subtract one from count. */
+  %let count = %eval(&i - 1);
+  &count;
+%mend;
+```
+
+Discussion Questions
+========================================================
+
+* Is string strings as (generally) immutable values a benefit or a handicap in statistical analysis or data science?
+
+* Why is
+```{r}
+'apples' > 'Apples'
+```
+?
+
+========================================================
+
+What is the macro equivalent to
+
+```{r}
+paste(paste(c("X"),c(1,2,3),sep=""),collapse=" + ")
+```
+
+
+========================================================
+What would you expect for
+```
+substr(RecipeName,2) <- "A"
+substring(RecipeName,2) <- "A"
+```
+Is the behaviour consistent with simply calling
+```
+substr(RecipeName,2)
+substring(RecipeName,2)
+```
+?
+
+========================================================
+- Suppose we have a file with columns of text and we want to read and process the text as characters, not a categorical data. How would we do this in R and SAS?
+
+
+
+
+Pattern Matching
+========================================================
+
+Frequently when we process text we don't want exact matches. For example, it's common to use `upcase` for case-insensitive comparisons.
+
+Other times, we only look for part of a word. We might not care about verb tenses or plurality of nouns; we might not care about the adjectives associated with a key noun. 
+
+So we look for simple patterns in text. We'll consider how to define patterns using regular expressions in R and similar syntax for SQL, through SAS.
+
+========================================================
+class: tiny-code
+
+For some simple examples, we use the combined stroganoff recipes
+
+
+```{r}
+BeefStroganoff.dat <- data.frame(
+  Year = c(rep(1997,6),rep(2006,8)),
+  Amount = c(1.5, 3.5, 1.0, 1.0, 3.0, 1.0, 2.0, 2.0, 3.0, 1.0, 1.0, 1.0, 3.0, 1.0),
+  Measure = c('lb','Tbs','Tbs','cup','Tbs','tsp','lb','Tbs','Tbs','ea','lb','cup','cup','Tbs'),
+Ingredient = c('beef roast, tenderloin, raw, 0" trim',
+                'butter, salted',
+                'flour, all purpose, self rising, enriched',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon',
+                'beef roast, tenderloin, raw, 0" trim',
+               'oil, canola',
+                'butter, salted',
+               'onion, yellow, fresh, medium, 2 1/2"',
+               'mushrooms, fresh',
+                'stock, beef, prepared from recipe',
+                'sour cream, cultured',
+                'mustard, dijon')
+)
+```
+
+========================================================
+
+For simplicity, I'll create index arrays as well, since text columns in data tables are converted to factors.
+```{r}
+Measures <- as.character(BeefStroganoff.dat$Measure)
+Ingredients <- as.character(BeefStroganoff.dat$Ingredient)
+```
+
+========================================================
+
+Some common partial matches involve
+   * exact matches
+     - start/end
+     - anywhere
+   * wildcard matches
+     - single
+     - multiple
+   * range of characters
+
+
+Exact matches
+============================================================
+class: small-code
+
+Assuming we want to match the characters `word`,
+
+Position          |       Regex | SQL
+------------------|-------------|---------
+start of text     | `^word`     | `%word`
+end of text       | `word$`     | `word%`
+
+============================================================
+
+I generally use `grepl`:
+
+```{r}
+grepl("^a", "And")
+grepl("^A", "And")
+```
+
+
+============================================================
+class : tiny-code
+
+Another function, `grep`, has similar syntax but returns a different result:
+
+```{r}
+
+grep("^a", Ingredients)
+grep("^b", Ingredients)
+grepl("^a", Ingredients)
+grepl("^b", Ingredients)
+```
+
+============================================================
+class : small-code
+
+... but they have similar uses
+
+```{r}
+b.idx <- grep("^b", Ingredients)
+BeefStroganoff.dat[b.idx,]
+```
+
+
+```{r}
+b.mask <- grepl("^b", Ingredients)
+BeefStroganoff.dat[b.mask,]
+```
+
+
+============================================================
+To perform similar searches in SAS, we use `like` in the `where` clause:
+
+```
+select * from BeefStroganoff where Ingredient like 'a%';
+select * from BeefStroganoff where Ingredient like 'b%';
+select * from BeefStroganoff where Ingredient like 'B%';
+```
+
+Match anywhere
+============================================================
+
+By default, `grep` matches text that contains a fixed string.
+
+```{r}
+Ingredients[grepl("beef", Ingredients)]
+```
+
+============================================================
+We can mimic this with `like` and wildcards,
+
+```
+select * from BeefStroganoff where Ingredient like '%beef%';
+```
+but more often we use the 'contains' clause
+```
+select * from BeefStroganoff where Ingredient contains 'beef';
+```
+
+Wild cards
+============================================================
+Wild cards match any character, or a number of characters.
+
+
+Quantity          |   Regex | SQL
+------------------|---------|-----------
+exactly 1         | `.`     | `-`
+0-1               | `?`     | `%`
+0 or more         | `*`     | `%`
+1 or more         | `+`     | `_%`
+
+
+========================================================
+Some examples
+
+```{r}
+Measures[grepl(".b", Measures)]
+Measures[grepl(".b$", Measures)]
+Measures[grepl(".b.", Measures)]
+```
+
+========================================================
+For similar in SAS
+```
+select Measure from BeefStroganoff where Measure like '_b_';
+select Measure from BeefStroganoff where Measure like '_b';
+select Measure from BeefStroganoff where trim(Measure) like '_b_';
+```
+(SAS pads text with whitespace characters, and whitespace matches wildcards)
+
+========================================================
+class: small-code
+
+Something a little more interesting:
+
+```
+select Ingredient from BeefStroganoff where Ingredient like '_o_';
+select Ingredient from BeefStroganoff where Ingredient like '_o%';
+select Ingredient from BeefStroganoff where Ingredient like '%o_';
+select Ingredient from BeefStroganoff where Ingredient like '%o%';
+```
+
+========================================================
+class: tiny-code
+But note that we can't translate this directly to `grep` (my thinking is that quantifies attach themselves to a previous pattern)
+
+```{r}
+matched <- grepl(".e.", Ingredients)
+Ingredients[matched]
+Ingredients[!matched]
+```
+
+At least one `e`, but not in the first position.
+
+========================================================
+class: tiny-code
+
+```{r}
+matched <- grepl(".e*", Ingredients)
+Ingredients[matched]
+Ingredients[!matched]
+```
+
+At least one character, any number of `e`
+
+========================================================
+class: tiny-code
+
+```{r}
+matched <- grepl("*e.", Ingredients)
+Ingredients[matched]
+Ingredients[!matched]
+```
+
+- Anything with at least one `e`.
+
+========================================================
+class: tiny-code
+
+```{r}
+matched <- grepl("*e*", Ingredients)
+Ingredients[matched]
+Ingredients[!matched]
+```
+
+Any number of characters, any number of `e`.
+
+
+========================================================
+class: tiny-code
+
+Instead, we might need to be more specific:
+
+```{r}
+Ingredients[grepl("^.e.$", Ingredients)]
+Ingredients[grepl("^.e", Ingredients)]
+Ingredients[grepl("e.$", Ingredients)]
+```
+
+========================================================
+class: tiny-code
+
+```{r}
+Ingredients[grepl("e", Ingredients)]
+```
+
+
+Range of characters
+========================================================
+class: tiny-code
+
+Range                           |   Regex | SQL*
+--------------------------------|---------|-----------
+character(s) from a range       | `[]`    | `[]`
+exclude character(s)            | `[^]`   | `[^]`
+
+* some dialects of SQL, but not PROC SQL.
+
+
+============================================================
+class : small-code
+
+A common use is to find upper or lower case letters.
+
+```{r}
+Measures[grepl("^[a-z]", Measures)]
+Measures[grepl("^[A-Z]", Measures)]
+Measures[grepl("^[^A-Z]", Measures)]
+```
+
+============================================================
+or numbers ...
+```{r}
+Ingredients[grepl("[0-9]", Ingredients)]
+```
+
+============================================================
+or predefined sets ...
+```{r}
+Ingredients[grepl("[[:digit:]]", Ingredients)]
+```
+
+
+============================================================
+We can also quantify from ranges
+```{r}
+Ingredients[grepl("[ou]{2}", Ingredients)]
+```
+
+Match patterns from the set {`oo`,`ou`,`uo`,`uu`}
+
+
+============================================================
+Regular expressions also allow for groupings and references to match groups. So, for example
+
+```{r}
+Ingredients[grepl("o(u|a)", Ingredients)]
+```
+
+Match patterns from the set {`ou`,`oa`}
+
+========================================================
+Combining matches:
+
+```{r}
+Recipes <- as.character(JoyOfCooking.dat$RecipeName)
+```
+
+========================================================
+Recipes containing `and`
+```{r}
+Recipes[grepl("and", Recipes)]
+```
+
+========================================================
+Recipes containing `with`
+```{r}
+Recipes[grepl("with", Recipes)]
+```
+
+========================================================
+class: tiny-code
+
+Recipes containing either
+```{r}
+Recipes[grepl("with|and", Recipes)]
+```
+
+========================================================
+class: small-code
+
+Recipes containing both?
+```{r}
+Recipes[grepl("with*and", Recipes)]
+Recipes[grepl("*with*and*", Recipes)]
+```
+Nope, we need a pattern:
+```{r}
+Recipes[grepl("with[a-zA-Z ]*and", Recipes)]
+```
+
+========================================================
+class: small-code
+
+Finally, a brief not about wildcards:
+```{r}
+grepl("with[a-zA-Z ]*and", c("with and","with  and","withand"))
+grepl("with[a-zA-Z ]+and", c("with and","with  and","withand"))
+grepl("with[a-zA-Z ]?and", c("with and","with  and","withand"))
+grepl("with[a-zA-Z]?and", c("with and","with  and","withand"))
+```
+
+
+Discussion Questions
+========================================================
+So, if you want only Calorie data columns and don't need ServingSize? 
+
+We can perform simple text substitutions using something like
+```
+substring(RecipeName,2) <- "Abc"
+```
+
+How do we combine text substitution with regular expressions? Can this be done in SQL?
+
+How are regexpr, gregexpr and regexec different than grep/grepl?

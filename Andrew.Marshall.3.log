@@ -1,0 +1,361 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 72         
+ 73         /**
+ 74         \file
+ 75         \ingroupmodule group
+ 76         
+ 77         \briefbrief description
+ 78         
+ 79         Exercise 1 for homework assignment 3;
+ 80         
+ 81         \version\$Revision: 1.0 $
+ 82         \author\$Author: Andrew Marshall $
+ 83         \date\$Date:2018-06-14 $
+ 84         
+ 85         
+ 86         /* options macrogen symbolgen mprint mlogic; */
+ 87         
+ 88         /*
+ 89          * General Instructions.
+ 90          * This file includes unit test code for Exercise 1 and 2. You can use
+ 91          * PROC IML or Macro language for either exercise, but you must choose exactly one
+ 92          * for each exercise.
+ 93          *
+ 94          * There is also template code for Exercise 4.
+ 95          *
+ 96          * Write your own code for the sections labelled 'Code Here'. Write code to compute
+ 97          * and assign values to pass the unit tests - do not change the hard-coded
+ 98          * numeric constants.
+ 99          *
+ 100         * You must upload your SAS log to D2L to get credit for unit test points.
+ 101         */
+ 102        %let unit_test_points = 0;
+ 103        
+ 104        %macro fisher_lsd(s_i, n_i, s_j, n_j, alpha=0.05);
+ 105          %let s2  = ((&n_i-1)*&s_i**2 + (&n_j-1)*&s_j**2) / ((&n_i-1)+(&n_j-1));
+ 106          %let critical_t = %sysfunc(quantile(T,1 - &alpha/2,&n_i+&n_j-2));
+ 107          %let lsd = %sysevalf(&critical_t*%sysfunc(sqrt(&s2*(1/&n_i + 1/&n_j))));
+ 108          &lsd;
+ 109        %mend;
+ 110        
+ 111        title 'Exercise 1 (R and SAS, required)';
+ 112        /*
+ 113        Choose to use either Macro or IML, only one will be graded.
+ 114        Unit tests are protected by comment blocks for these exercises;
+ 115        move the comments to execute the unit tests for the code you wish
+ 116        to be graded.
+ 117        
+ 118        Be sure to upload the SAS log as well as results if you choose the Macro option.
+ 119        */
+ 120        
+ 121        /* Exercise 1 Macro Code Here */
+ 122        %let d_12 = 0;
+ 123        
+ 124        /* Exercise 1 unit test, macro code
+ 125        %put %sysevalf(&d_12);
+ 126        %let difference = %sysevalf(%sysfunc(abs(&d_12-0.7181)));
+ 127        
+ 128        %if %sysevalf(&difference<0.0001) %then
+ 129          %do;
+ 130            %let unit_test_points = %eval(&unit_test_points+8);
+ 131          %end;
+ 132        %else
+ 133          %do;
+ 134            %put 'd is not assigned the correct value';
+ 135          %end;
+ 136        */
+ 137        
+ 138        proc iml;
+ NOTE: IML Ready
+ 139          /* Exercise 1 IML Code Here */
+ 140          /* Variable declarations and calculations for Calories per Recipe (CPR) function*/
+ 141          d_12 = 0;
+ 142          m_1 = 2123.8;
+ 143          m_2 = 3051.9;
+ 144          s_1 = 1050.0;
+ 145          s_2 = 1496.2;
+ 146          start d_12CPR(m_1,m_2,s_1,s_2);
+ 147          d_12_var = (abs(m_1-m_2)) / (sqrt((s_1**2 + s_2**2)/2));
+ 148          return(d_12_var);
+ 149          finish d_12CPR;
+ NOTE: Module D_12CPR defined.
+ 150          d_12 = d_12CPR(m_1,m_2,s_1,s_2);
+ 151          print(d_12);
+ 152        
+ 153          /*Exercise 1 unit test, IML code  */
+ 154          if(abs(d_12-0.7181)<0.0001) then
+ 155            do;
+ 156              local_unit_test_points = &unit_test_points + 8;
+ 157              print(local_unit_test_points);
+ 158              call symput("unit_test_points", char(local_unit_test_points));
+ 159            end;
+ 160           else
+ 161            do;
+ 162              print 'd_12 is not assigned the correct value';
+ 163            end;
+ 164         quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              2157.12k
+       OS Memory           30628.00k
+       Timestamp           06/14/2018 05:35:13 AM
+       Step Count                        28  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     372
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 165        
+ 166        proc iml;
+ NOTE: IML Ready
+ 167          /* Exercise 1 IML Code Here */
+ 168          /* Variable declarations and calculations for Calories per Serving (CPS) function*/
+ 169          d_12 = 0;
+ 170          m_1 = 268.1;
+ 171          m_2 = 285.6;
+ 172          s_1 = 124.8;
+ 173          s_2 = 118.3;
+ 174          start d_12CPS(m_1,m_2,s_1,s_2);
+ 175          d_12_var = (abs(m_1-m_2)) / (sqrt((s_1**2 + s_2**2)/2));
+ 176          return(d_12_var);
+ 177          finish d_12CPS;
+ NOTE: Module D_12CPS defined.
+ 178          d_12 = d_12CPS(m_1,m_2,s_1,s_2);
+ 179          print(d_12);
+ 180        
+ 181          /*Exercise 1 unit test, IML code  */
+ 182          if(abs(d_12-0.7181)<0.0001) then
+ 183            do;
+ 184              local_unit_test_points = &unit_test_points + 8;
+ 185              print(local_unit_test_points);
+ 186              call symput("unit_test_points", char(local_unit_test_points));
+ 187            end;
+ 188           else
+ 189            do;
+ 190              print 'd_12 is not assigned the correct value';
+ 191            end;
+ 192         quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              574.68k
+       OS Memory           30884.00k
+       Timestamp           06/14/2018 05:35:13 AM
+       Step Count                        29  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     153
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 193        
+ 194        proc iml;
+ NOTE: IML Ready
+ 195          /* Exercise 1 IML Code Here */
+ 196           /* Variable declarations and calculations for Servings per Recipe (SPR) function */
+ 197          m_1 = 12.9;
+ 198          m_2 = 12.4;
+ 199          s_1 = 13.3;
+ 200          s_2 = 14.3;
+ 201          start d_12SPR(m_1,m_2,s_1,s_2);
+ 202          d_12_var = (abs(m_1-m_2)) / (sqrt((s_1**2 + s_2**2)/2));
+ 203          return(d_12_var);
+ 204          finish d_12SPR;
+ NOTE: Module D_12SPR defined.
+ 205          d_12 = d_12SPR(m_1,m_2,s_1,s_2);
+ 206          print(d_12);
+ 207        
+ 208          /*Exercise 1 unit test, IML code  */
+ 209          if(abs(d_12-0.7181)<0.0001) then
+ 210            do;
+ 211              local_unit_test_points = &unit_test_points + 8;
+ 212              print(local_unit_test_points);
+ 213              call symput("unit_test_points", char(local_unit_test_points));
+ 214            end;
+ 215           else
+ 216            do;
+ 217              print 'd_12 is not assigned the correct value';
+ 218            end;
+ 219         quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              559.78k
+       OS Memory           31140.00k
+       Timestamp           06/14/2018 05:35:13 AM
+       Step Count                        30  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     130
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 220        
+ 221        title 'Exercise 2 (R or SAS, required)';
+ 222        /*
+ 223        Choose to use either Macro or IML, only one will be graded.
+ 224        */
+ 225        
+ 226        %let l_1 = 0;
+ 227        %let l_2 = 0;
+ 228        
+ 229        /* Exercise 2 unit test, macro code
+ 230        %let difference = %sysevalf(%sysfunc(abs(&l_1-0.396952)));
+ 231        
+ 232        %if %sysevalf(&difference<1e-6) %then
+ 233          %do;
+ 234            %let unit_test_points = %eval(&unit_test_points+4);
+ 235          %end;
+ 236        %else
+ 237          %do;
+ 238            %put 'l_1 is not assigned the correct value';
+ 239          %end;
+ 240        
+ 241        %let difference = %sysevalf(%sysfunc(abs(&l_2-0.391043)));
+ 242        
+ 243        %if %sysevalf(&difference<1e-6) %then
+ 244          %do;
+ 245            %let unit_test_points = %eval(&unit_test_points+4);
+ 246          %end;
+ 247        %else
+ 248          %do;
+ 249            %put 'l_2 is not assigned the correct value';
+ 250          %end;
+ 251         */
+ 252        
+ 253        proc iml;
+ NOTE: IML Ready
+ 254           /* Exercise 2 IML Code Here */
+ 255        
+ 256          l_1 = 0;
+ 257          l_2 = 0;
+ 258          print(l_1);
+ 259          print(l_2);
+ 260        
+ 261        /* Exercise 2 unit test, IML code
+ 262          local_unit_test_points = &unit_test_points;
+ 263        
+ 264          if(abs(l_1-0.396952)<1e-6) then;
+ 265            do;
+ 266              local_unit_test_points = local_unit_test_points + 4;
+ 267              print(local_unit_test_points);
+ 268            end;
+ 269        
+ 270          if(abs(l_2-0.391043)<1e-6) then;
+ 271            do;
+ 272              local_unit_test_points = local_unit_test_points + 4;
+ 273              print(local_unit_test_points);
+ 274            end;
+ 275        
+ 276          call symput("unit_test_points", char(local_unit_test_points));
+ 277          */
+ 278        quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              472.25k
+       OS Memory           31140.00k
+       Timestamp           06/14/2018 05:35:13 AM
+       Step Count                        31  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     92
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 279        
+ 280        title 'Exercise 3. (R or SAS)';
+ 281        /* Optional - see R Markdown  */
+ 282        
+ 283        title 'Exercise 4. (R or SAS)';
+ 284        /* Optional.
+ 285        Write a macro to compute upper and lower bounds for a count mean, using
+ 286        the formula in the R Markdown. Your macro should take `x` and `alpha` as
+ 287        parameters, with `alpha` being optional and equal to 0.05.
+ 288        
+ 289        Inside the macro, assign values to normal variables, not macro variables.
+ 290        Implement the formula as you would in PROC IML. Your macro should
+ 291        compute the same values in both PROC IML and DATA code fragments below.
+ 292        
+ 293        Compare your results to the values from the R function in the markdown
+ 294        document.
+ 295        */
+ 296        
+ 297        /*
+ 298        proc iml;
+ 299          %chi_ci(12);
+ 300          print(Lower);
+ 301          print(Upper);
+ 302        
+ 303          %chi_ci(13);
+ 304          print(Lower);
+ 305          print(Upper);
+ 306        quit;
+ 307        
+ 308        data counts;
+ 309          input x;
+ 310          %chi_ci(x);
+ 311          datalines;
+ 312          12
+ 313          13
+ 314        run;
+ 315        
+ 316        proc print data=counts;
+ 317        run;
+ 318        */
+ 319        
+ 320        title 'Exercise 5. (R or SAS)';
+ 321        /* Optional - see R Markdown  */
+ 322        
+ 323        /* Total points from unit tests */
+ 324        title 'Unit Test Points';
+ 325        %put 'Total points from unit tests' %eval(&unit_test_points);
+ 'Total points from unit tests' 8
+ 326        proc iml;
+ NOTE: IML Ready
+ 327          print(&unit_test_points);
+ 328        quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              475.53k
+       OS Memory           31140.00k
+       Timestamp           06/14/2018 05:35:13 AM
+       Step Count                        32  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     93
+       Page Swaps                        0
+       Voluntary Context Switches        1
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 329        
+ 330        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 343        

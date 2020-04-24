@@ -1,0 +1,211 @@
+---
+title: "2 Calculation Exercises"
+author: ''
+date: ''
+output:
+  html_document: default
+---
+
+```{r,echo=FALSE}
+options(digits=12)
+unit.test.points=0
+```
+
+# General instructions.
+
+Exercise 1 is required and must be solved using both R and SAS. This exercise is worht 20 points, 10 points each for R and SAS. The R portion is included in this document and includes a unit test that checks the results of your calculations. 
+
+Exercises 2 is also required, but you may choose to use either R or SAS. Make that you include in your code comments documenting your choice, don't simply submit the results without explanation. This exercise is worth 10 points.
+
+Exercises 3-5 are optional, choose two of three and document your choice. Your are also allowed to choose from either R or SAS. Choose only 1, each will be worth 10 points, and the entire assignment will be worth 50 points.
+
+Be sure to document your code and comment on the results.
+
+# Exercise 1 (R and SAS, required)
+
+
+Calculate Cohen's $d$ for calories per recipe, calories per serving and servings per recipe, comparing years 1936 and 2006. Use the formula
+$$
+d = \frac{|m_1-m_2|}{\sqrt{(s_1^2 + s_2^2)/2}}
+$$
+
+## Part a. 
+Enter the R code in the code chunk below, and assign a value to `d_12` for unit testing.
+
+```{r}
+# Variables for "calories per recipe" (CPR) to be input into formula
+ m_1 <- 2123.8 #Mean CPR 1936
+ m_2 <- 3051.9 #Mean CPR 2006
+ s_1 <- 1050.0 #SD CPR 1936
+ s_2 <- 1496.2 #SD CPR 2006
+
+# Assigning formula to variable d_12 for next chunk.
+ d_12<- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+print(d_12);
+# Result: 0.718065555553
+
+# Variables for "calories per serving" (CPS) to be input into formula
+m_1 <- 268.1 #Mean CPS 1936
+m_2 <- 285.6 #Mean CPs 2006
+s_1 <- 124.8 #SD CPS 1936
+s_2 <- 118.3 #SD CPS 2006
+
+# Assigning formula to variable d_12 for next chunk.
+d_12 <- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+print(d_12)
+# Result: 0.143922236212
+
+# Variables for "servings per recipe" (SPR) to be input into formula
+m_1 <- 12.9 #Mean SPR 1936
+m_2 <- 12.4 #Mean SPR 2006
+s_1 <- 13.3 #SD SPR 1936
+s_2 <- 14.3 #SD SPR 2006
+
+# Assigning formula to variable d_12 for next chunk.
+d_12 <- (abs(m_1-m_2))/(sqrt((s_1^2 + s_2^2)/2))
+print(d_12)
+# Result: 0.0362081257545
+
+
+
+```
+
+
+```{r, unit test for exercise 1,echo=FALSE}
+
+
+if(abs(d_12-0.7181)<0.0001) {
+  print(unit.test.points <- unit.test.points+8)
+} else {
+  cat('d is not assigned the correct value','\n')
+}
+#CPR Results: 8
+#CPS Result: d is not assigned the correct value
+#SPR Result: d is not assigned the correct value
+```
+
+## Part b.
+For the SAS portion, you may use PROC IML or macro language. Use `2 Calculations Template.sas` to start. This file contains unit tests for Exercises 1 and 2.
+
+# Exercise 2 (R or SAS, required)
+
+The probablity of an observation $x$, when taken from a normal population with mean $\mu$ and variance $\sigma^2$ is calculated by
+$$
+L (x ; \mu, \sigma^2) = \frac{1}{\sigma \sqrt{2 \pi}^{}} e^{- \frac{(x - \mu)^2}{2 \sigma^2}}
+$$
+For values of $x = \{ 0.1, 0.2 \}$, write code to calculate $L (x ; \mu = 0, \sigma = 1)$. Assign the values to `l_1` and `l_2`.
+  
+### Answer
+
+If you choose to do this exercise in R, use the unit test below.
+
+```{r}
+l_1 <- NA
+l_2 <- NA
+```
+
+### Unit Test (R)
+```{r, unit test for exercise 2,echo=FALSE}
+if(abs(l_1 - 0.396952)<1e-6) {
+  print(unit.test.points <- unit.test.points + 4)
+} else {
+  print("likelihood for x = 0.1 incorrect")
+}
+
+if(abs(l_2 - 0.391043)<1e-6 ) {
+  print(unit.test.points <- unit.test.points + 4)
+} else {
+  print("likelihood for x = 0.2 incorrect")
+}
+```
+
+If you choose to do this exercise in SAS, you must do this in PROC IML, using the unit test template `2 Calculations.sas`.
+
+# Exercise 3 (R or SAS)
+
+## Part a
+
+Write code to compute
+  
+  $$7 - 1 \times 0 + 3 \div 3$$
+  
+Type this in verbatim, using only numbers, `-`,`*` and `/`, with no parenthesis. Do you agree with the result? Explain why, one or two sentences.
+
+#### Answer
+
+```{r}
+
+```
+
+## Part b
+
+  According to "Why Did 74% of Facebook Users Get This Wrong?" (<http://www.classroomprofessor.com/teaching-math/why-did-74pc-of-facebook-users-get-this-wrong/>), most people would compute the result as 1. 
+  Use parenthesis `( )` to produce this result.
+
+#### Answer
+
+```{r}
+
+```
+
+## Part c
+
+Several respondents to the survey cited in Part 2 gave the answer 6. Add *one* set of parenthesis to produce this result.
+
+#### Answer
+```{r}
+
+```
+
+# Exercise 4. (R or SAS)
+
+### Part a
+
+Quoting from Wansink and Payne
+
+> Because of changes in ingredients,
+the mean average calories in a recipe increased by 928.1 (from
+2123.8 calories ... to 3051.9 calories
+... ), representing a 43.7% increase.
+
+Show how 43.7% is calculated from 2123.8 and 3051.9, and confirm W&P result.
+
+> The resulting increase of 168.8 calories (from 268.1 calories ... to 436.9 calories ...) represents a 63.0% increase ... in calories per serving.
+
+### Part b
+
+Repeat the calculations from above and confirm the reported 63.0% increase in calories per serving.
+
+```{r}
+```
+
+### Part c
+
+Using values from Table 1 Wansink, calculate the percent change in calories per serving from 1997 to 2006. How does this value compare to 63.0 increase as quoted in part b.?
+
+
+```{r}
+```
+
+
+# Exercise 5. (R or SAS)
+
+From Wansink and Payne
+> Given that the average 2006 recipe had 1.1 fewer servings than in 1936, the average calorie density per serving size has increased by 37.4% 
+
+From https://foodpsychology.cornell.edu/research/joy-cooking-too-much-70-years-calorie-increases-classic-recipes
+> "Also, the mean average calories per serving increased in 17 out of the 18 recipes by 37.4% from 268.1 calories to 436.9 calories"
+
+https://foodpsychology.cornell.edu/discoveries/joy-cooking-too-much
+>This expanded portion size helps explain why calories per serving have increased from an average of 168.8 calories to 436.9 calories, which is a 63% increase in calories per serving
+
+Show calculations in R or SAS to either confirm these statements (using values from Wansink Table 1) or show where the quoted values are inconsistent with Wansink Table 1.
+
+
+# Total points from unit tests
+```{r}
+unit.test.points
+```
+
+
+

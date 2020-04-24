@@ -1,0 +1,239 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 72         
+ 73         /**
+ 74         \file
+ 75         \ingroupmodule group
+ 76         
+ 77         \briefbrief description
+ 78         
+ 79         Exercise 1 for Homework assignment;
+ 80         
+ 81         \version\$Revision: 1.0 $
+ 82         \author\$Author: Andrew Marshall $
+ 83         \date\$Date:2018-06-07 $
+ 84         
+ 85         
+ 86         /* options macrogen symbolgen mprint mlogic; */
+ 87         
+ 88         /*
+ 89          * General Instructions.
+ 90          * This file includes unit test code for Exercise 1 and 2. You can use
+ 91          * PROC IML or Macro language for either exercise, but you must choose exactly one
+ 92          * for each exercise.
+ 93          *
+ 94          * Write your own code for the sections labelled 'Code Here'. Write code to compute
+ 95          * and assign values to pass the unit tests - do not change the hard-coded
+ 96          * numeric constants.
+ 97          *
+ 98          * You must upload your SAS log to D2L to get credit for unit test points.
+ 99          */
+ 100        %let unit_test_points = 0;
+ 101        
+ 102        title 'Exercise 1 (R and SAS, required)';
+ 103        /*
+ 104        Calculate Cohen's $d$ for calories per recipe, calories per serving and
+ 105        servings per recipe, comparing years 1936 and 2006. Use the formula
+ 106        $d = \frac{|m_1-m_2|}{\sqrt{(s_1^2 + s_2^2)/2}}$
+ 107        
+ 108        Choose to use either Macro or IML, only one will be graded.
+ 109        Unit tests are protected by comment blocks for these exercises;
+ 110        move the comments to execute the unit tests for the code you wish
+ 111        to be graded.
+ 112        
+ 113        Be sure to upload the SAS log as well as results.
+ 114        */
+ 115        
+ 116        /* Exercise 1 Macro Code Here */
+ 117        %let d_12 = .;
+ 118        
+ 119        /* Exercise 1 unit test, macro code
+ 120        %put %sysevalf(&d_12);
+ 121        %let difference = %sysevalf(%sysfunc(abs(&d_12-0.7181)));
+ 122        
+ 123        %if %sysevalf(&difference<0.0001) %then
+ 124          %do;
+ 125            %let unit_test_points = %eval(&unit_test_points+8);
+ 126          %end;
+ 127        %else
+ 128          %do;
+ 129            %put 'd is not assigned the correct value';
+ 130          %end;
+ 131         */
+ 132        
+ 133        proc iml;
+ NOTE: IML Ready
+ 134          /* Exercise 1 IML Code Here */
+ 135         /* Variable declarations and calculations for Calories per Recipe (CPR) */
+ 136          m_1 = 2123.8;
+ 137          m_2 = 3051.9;
+ 138          s_1 = 1050.0;
+ 139          s_2 = 1496.2;
+ 140          d_12CPR = (abs(m_1-m_2)) / (sqrt((s_1**2 + s_2**2)/2));
+ 141          print(d_12CPR);
+ 142        
+ 143           /* Variable declarations and calculations for Calories per Serving (CPS)*/
+ 144          m_1 = 268.1;
+ 145          m_2 = 285.6;
+ 146          s_1 = 124.8;
+ 147          s_2 = 118.3;
+ 148          d_12CPS = (abs(m_1-m_2)) / (sqrt((s_1**2 + s_2**2)/2));
+ 149          print(d_12CPS);
+ 150        
+ 151           /* Variable declarations and calculations for Servings per Recipe(SPR) */
+ 152          m_1 = 12.9;
+ 153          m_2 = 12.4;
+ 154          s_1 = 13.3;
+ 155          s_2 = 14.3;
+ 156          d_12SPR = (abs(m_1-m_2)) / (sqrt((s_1**2 + s_2**2)/2));
+ 157          print(d_12SPR);
+ 158        
+ 159        
+ 160           /*Exercise 1 unit test, IML code */
+ 161          if(abs(d_12CPR-0.7181)<0.0001) then
+ 162            do;
+ 163              local_unit_test_points = &unit_test_points + 8;
+ 164              print(local_unit_test_points);
+ 165              call symput("unit_test_points", char(local_unit_test_points));
+ 166            end;
+ 167           else
+ 168            do;
+ 169              print 'd_12 is not assigned the correct value';
+ 170            end;
+ 171        
+ 172           if(abs(d_12CPS-0.7181)<0.0001) then
+ 173            do;
+ 174              local_unit_test_points = &unit_test_points + 8;
+ 175              print(local_unit_test_points);
+ 176              call symput("unit_test_points", char(local_unit_test_points));
+ 177            end;
+ 178           else
+ 179            do;
+ 180              print 'd_12 is not assigned the correct value';
+ 181            end;
+ 182        
+ 183            if(abs(d_12SPR-0.7181)<0.0001) then
+ 184            do;
+ 185              local_unit_test_points = &unit_test_points + 8;
+ 186              print(local_unit_test_points);
+ 187              call symput("unit_test_points", char(local_unit_test_points));
+ 188            end;
+ 189           else
+ 190            do;
+ 191              print 'd_12 is not assigned the correct value';
+ 192            end;
+ 193        
+ 194        quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.04 seconds
+       user cpu time       0.04 seconds
+       system cpu time     0.00 seconds
+       memory              2301.71k
+       OS Memory           30628.00k
+       Timestamp           06/08/2018 03:13:35 AM
+       Step Count                        60  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     392
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 195        
+ 196        title 'Exercise 2 (R or SAS, required)';
+ 197        /*
+ 198        The probablity of an observation $x$, when taken from a normal population with mean $\mu$ and variance $\sigma^2$ is
+ 198      ! calculated by
+ 199        $$
+ 200        L (x ; \mu, \sigma^2) = \frac{1}{\sigma \sqrt{2 \pi}^{}} e^{- \frac{(x - \mu)^2}{2 \sigma^2}}
+ 201        $$
+ 202        
+ 203        Choose to use either Macro or IML, only one will be graded.
+ 204        */
+ 205        
+ 206        %let l_1 = .;
+ 207        %let l_2 = .;
+ 208        
+ 209        /* Exercise 2 unit test, macro code
+ 210        %let difference = %sysevalf(%sysfunc(abs(&l_1-0.396952)));
+ 211        
+ 212        %if %sysevalf(&difference<1e-6) %then
+ 213          %do;
+ 214            %let unit_test_points = %eval(&unit_test_points+4);
+ 215          %end;
+ 216        %else
+ 217          %do;
+ 218            %put 'l_1 is not assigned the correct value';
+ 219          %end;
+ 220        
+ 221        %let difference = %sysevalf(%sysfunc(abs(&l_2-0.391043)));
+ 222        
+ 223        %if %sysevalf(&difference<1e-6) %then
+ 224          %do;
+ 225            %let unit_test_points = %eval(&unit_test_points+4);
+ 226          %end;
+ 227        %else
+ 228          %do;
+ 229            %put 'l_2 is not assigned the correct value';
+ 230          %end;
+ 231         */
+ 232        
+ 233        proc iml;
+ NOTE: IML Ready
+ 234           /* Exercise 2 IML Code Here */
+ 235          l_1 = .;
+ 236          l_2 = .;
+ 237        
+ 238        /* Exercise 2 unit test, IML code
+ 239          local_unit_test_points = &unit_test_points;
+ 240        
+ 241          if(abs(l_1-0.396952)<1e-6) then;
+ 242            do;
+ 243              local_unit_test_points = local_unit_test_points + 4;
+ 244              print(local_unit_test_points);
+ 245            end;
+ 246        
+ 247          if(abs(l_2-0.391043)<1e-6) then;
+ 248            do;
+ 249              local_unit_test_points = local_unit_test_points + 4;
+ 250              print(local_unit_test_points);
+ 251            end;
+ 252        
+ 253          call symput("unit_test_points", char(local_unit_test_points));
+ 254          */
+ 255        quit;
+ NOTE: Exiting IML.
+ NOTE: PROCEDURE IML used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              395.09k
+       OS Memory           30884.00k
+       Timestamp           06/08/2018 03:13:35 AM
+       Step Count                        61  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     119
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 256        
+ 257        title 'Exercise 3. (R or SAS)';
+ 258        /* Optional - see R Markdown */
+ 259        title 'Exercise 4. (R or SAS)';
+ 260        /* Optional - see R Markdown  */
+ 261        title 'Exercise 5. (R or SAS)';
+ 262        /* Optional - see R Markdown  */
+ 263        
+ 264        /* Total points from unit tests */
+ 265        %put 'Total points from unit tests' %eval(&unit_test_points);
+ 'Total points from unit tests' 8
+ 266        
+ 267        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 280        

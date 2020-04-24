@@ -1,0 +1,435 @@
+
+<style>
+.tiny-code pre code {
+  font-size: 1.2em;
+}
+.small-code pre code {
+  font-size: 1.2em;
+}
+.medium-code pre code {
+  font-size: 1.4em;
+}
+</style>
+
+Additional Graphics
+========================================================
+autosize: true
+font-family: 'Garamond'
+
+## Statistical Programming
+
+```{r,echo=FALSE}
+options(digits=12)
+```
+
+Concepts
+========================================================
+
+- Histograms
+- Box-Whisker
+- QQ plots
+
+========================================================
+
+One of the most common assumptions in statistics at that data or errors are normally distributed random variables; the probability of observing particular values can be predicted from the Gaussian, knowing only a mean and a standard deviation.
+
+There are some formal techniques to test for normality, but I like graphs, so we'll demonstrate some graphing techniques that will be useful for examining this assumption.
+
+
+========================================================
+
+We'll start with the Mavro data set from http://www.itl.nist.gov/div898/strd/univ/mavro.html .
+This is a series of measurements of light transmitted through a particular filter. We might expect this to be a series of samples from a single normal distribution.
+
+```{r}
+Mavro <- c(2.00180, 2.00170, 2.00180, 2.00190, 2.00180, 2.00170, 2.00150, 2.00140, 2.00150, 2.00150, 2.00170, 2.00180, 2.00180, 2.00190, 2.00190, 2.00210, 2.00200, 2.00160, 2.00140, 2.00130, 2.00130, 2.00150, 2.00150, 2.00160, 2.00150, 2.00140, 2.00130, 2.00140, 2.00150, 2.00140, 2.00150, 2.00160, 2.00150, 2.00160, 2.00190, 2.00200, 2.00200, 2.00210, 2.00220, 2.00230, 2.00240, 2.00250, 2.00270, 2.00260, 2.00260, 2.00260, 2.00270, 2.00260, 2.00250, 2.00240)
+```
+
+
+
+Distribution Plots
+========================================================
+
+There are two graphs linked to this data set (http://www.itl.nist.gov/div898/strd/univ/graphics/mavro.html), a histogram and a uniform probability plot. These plots are used to determine if a data set represent a single random variable of an expected distribution (i.e. normally distributed).
+
+We'll look at the histogram first.
+
+
+Mavro Histogram
+========================================================
+
+We plot the histogram in R:
+```{r,fig.width=8, fig.height=6}
+hist(Mavro)
+```
+
+Histogram and Summary
+========================================================
+Let's relate the histogram to `summary`
+```{r}
+summary(Mavro)
+```
+The summary tells use that all values in the `Mavro` data are between 2.0013 and 2.0027, and the midpoint, with 50% of the values on either side, is 2.0018. Let's add these to the histogram.
+
+
+Histogram and Range.
+========================================================
+
+```{r,fig.width=8, fig.height=6}
+hist(Mavro)
+abline(v=median(Mavro), col="blue")
+abline(v=c(min(Mavro), max(Mavro)), col="red",lty=3)
+```
+
+
+Histogram and Quartiles
+========================================================
+class: small-code
+
+For completeness, we can add the 25% and 75% quartiles.
+
+```{r,fig.width=8, fig.height=6}
+mavro.quant <- quantile(Mavro)
+hist(Mavro)
+abline(v=mavro.quant, col=c("red","green","blue","green","red"), lty=c(3,2,1,2,3))
+```
+
+
+Histogram and Quartiles
+========================================================
+The histogram looks skewed to the left, and `summary` helps confirm that - there is a greater difference between median and max than between min and median. This might be an issue if we need to assume the data follow a normal distribution, where we expect equal distance from the median to either extreme.
+
+
+Normal Quartiles
+========================================================
+
+We can simulate the histogram from a normal distribution, of the same size as the `Mavro` data with the same mean and standard deviation by
+
+```{r}
+set.seed(111111)
+sim.norm <- rnorm(length(Mavro), mean=mean(Mavro), sd=sd(Mavro))
+sim.quant <- quantile(sim.norm)
+```
+
+We'll do this to have something more like a normal distribution to compare to `Mavro`
+
+Normal Quartiles
+========================================================
+class: small-code
+
+```{r,fig.width=8, fig.height=6}
+hist(sim.norm)
+abline(v=sim.quant[3],col="blue")
+abline(v=c(sim.quant[c(2,4)]),col="green", lty=2)
+abline(v=c(sim.quant[c(1,5)]),col="red", lty=3)
+```
+
+Plotting Quantiles
+========================================================
+class: small-code
+
+Plotting quantiles provides a visual depiction of the data, comparable to `summary`. This type of graphic is most commonly produced as a box-whisker plot.
+
+```{r,fig.width=8, fig.height=6}
+boxplot(Mavro)
+```
+
+
+
+Box-Whisker 
+========================================================
+class: small-code
+
+The *box* represents the 25%-75% interquartile (IQR) range, while the extremes are indicated by *whiskers*. The IQR can be thought of as the *middle fifty* between the two *hinges* at 25% and 75%. We can extract these values in R by:
+```{r}
+boxplot.stats(Mavro)
+```
+
+
+
+Whiskers
+========================================================
+
+We can control the whiskers to help identify outliers. 
+
+Typically, the length of the whiskers is a proportion the inter-quartile range. In base R, the proportion is specified by `range`, and defaults to 1.5. The whisker will be extended to the most extreme value in the data, or to `range*IQR`, whichever is smaller.  Any values outside the whiskers are plotted as single points.
+
+ 
+
+Whiskers
+========================================================
+class: small-code
+
+```{r,fig.width=24, fig.height=8}
+par(mfrow=c(1,3))
+boxplot(Mavro,range=1.5); 
+boxplot(Mavro,range=0.75); boxplot(Mavro,range=0.38)
+```
+
+Waist	
+=========================================================
+class: small-code
+
+A notch or *waist* can be added to the box plot. This represents an error of the median, $\pm 1.58 \times IQR / \sqrt{n}$. This can be used to approximate whether two medians are different.
+
+```{r,fig.width=8, fig.height=6}
+boxplot(Mavro,notch=TRUE)
+```
+
+
+
+Groups
+=========================================================
+As suggested in the last slide, boxplots may be useful as a simple summary of different groups. Typically, any bar plot that represents a summary of means can be made more informative using box-whisker plots.
+
+Stacked Data
+=========================================================
+class: small-code
+
+Consider the atomic weight of silver data set. We can produce summary statistics for these data by
+```{r}
+AtmWtAg.long <- read.table("../data/AtmWtAg.long.txt", header=TRUE)
+aggregate(AgWt ~ Instrument, data=AtmWtAg.long, summary)
+```
+
+Grouping boxplots
+=========================================================
+class: small-code
+
+We can produce a box for each instrument by:
+```{r,fig.width=8, fig.height=6}
+boxplot(AgWt ~ Instrument, data=AtmWtAg.long, notch=TRUE)
+```
+
+Boxplot and Factors
+=========================================================
+class: small-code
+If we specify a data column as a factor, the default `plot` will be a boxplot.
+```{r,fig.width=8, fig.height=6}
+AtmWtAg.long$Instrument <- as.factor(AtmWtAg.long$Instrument)
+plot(AgWt ~ Instrument, data=AtmWtAg.long)
+```
+
+
+
+Variations
+========================================================
+class: small-code
+
+The `lattice` library offers a variation on boxplots ...
+
+```{r,fig.width=10, fig.height=5}
+library(lattice)
+bwplot(AgWt ~ Instrument, data=AtmWtAg.long)
+```
+
+Variations
+========================================================
+class: small-code
+
+... as does `ggplot2`
+
+```{r,fig.width=10, fig.height=5}
+library(ggplot2)
+ggplot(AtmWtAg.long, aes(Instrument,AgWt)) + geom_boxplot()
+```
+
+
+SAS Boxplot
+========================================================
+
+We generate a simple boxplot in SAS by
+
+```
+proc sgplot data=mavro;
+  vbox y / name='Mavro';
+run;
+```
+
+
+Horizontal Boxplot
+========================================================
+SAS allows us to specify a horizontal boxplot, which can be compared with a histogram:
+
+```
+proc sgplot data=mavro;
+  hbox y / name='Mavro';
+run;
+
+proc sgplot data=mavro;
+  histogram y / nbins=10;
+run;
+```
+
+SAS Factor Boxplots
+========================================================
+We can also specify groups or categories for subsetting data and arranging boxes.
+```
+proc sgplot data=agatmwt;
+  vbox AgWt / category=Instrument
+    name='AgAtmWt';
+run;
+
+proc sgplot data=agatmwt;
+  vbox AgWt / group=Instrument 
+    name='AgAtmWt';
+run;
+```
+
+Uniform Probability Plot
+========================================================
+
+The uniform probability plot from http://www.itl.nist.gov/div898/strd/univ/graphics/mavro.html is an example of a Q-Q plot. 
+
+Q-Q plots are scatter plots where $x$ and $y$ are both quantiles. Typically, we plot the empirical quantiles of a set of observations against theoretical quantiles from a random distribution. Most commonly, that will be a normal distribution, so we refer to this as a QQ-normal plot.
+
+Quartile-Quartile plot
+====================================================
+class: small-code
+
+We might, for example, simply plot quartiles (0%, 25%, 50%, 75%, 100%) from `Mavro` against the simulated Normal quartiles:
+```{r,fig.width=8, fig.height=5}
+plot(quantile(sim.norm),quantile(Mavro))
+```
+
+
+Empirical Quantile-Quantile plot
+====================================================
+
+We can extend this idea by recognizing that each point in the `Mavro` data set can be given its own quantile - 50 points divided into 50 quantiles. 
+
+This is true for the simulated normal data set as well. Since there are 50 points in each, if we sort both, from low to high, then the elements are matched by quantile, and we can plot Quantile vs Quantile.
+
+Empirical Quantiles
+====================================================
+Think of the 50 quantiles like a histogram with one bin per value.
+
+```{r,fig.width=10, fig.height=5}
+hist(sim.norm,breaks=1000)
+```
+
+
+Empirical Quantile-Quantile plot
+====================================================
+
+```{r,fig.width=10, fig.height=5}
+plot(sort(sim.norm),sort(Mavro))
+```
+
+
+
+Quantile-Quantile
+====================================================
+When we create quantile-quantile plots, we usually don't use simulated values. Instead, we create a set of theoretical quantiles. 
+
+We start with a set of uniformly spaced probabilities between $[0,1]$, and then convert each probability to a quantile. The `ppoints` function gives us a set of probabilities, and `qnorm` calculates a quantile from a probablity.
+
+
+
+Quantile-Quantile Plot
+====================================================
+```{r,fig.width=10, fig.height=5}
+mavro.ppoints <- ppoints(length(Mavro))
+mavro.prob <- qnorm(mavro.ppoints, mean(Mavro),sd(Mavro))
+plot(mavro.prob,sort(Mavro))
+```
+
+
+QQ-normal with Simulated Normal
+====================================================
+class: small-code
+
+For comparison, plot our set of simulated normal observations. These show a more linear relationship with the theoritical quantiles:
+```{r,fig.width=10, fig.height=5}
+plot(mavro.prob,sort(Mavro))
+points(mavro.prob,sort(sim.norm),col="blue")
+```
+
+qqnorm
+====================================================
+
+That's a rather convulated process for most uses, so we can have R do this for us:
+
+```{r,fig.width=10, fig.height=5}
+qqnorm(Mavro)
+```
+
+qqnorm
+====================================================
+
+We can include a line to show the expected curve if the data were normally distributed by
+
+```{r,fig.width=10, fig.height=5}
+qqnorm(Mavro)
+qqline(Mavro, col = 2,lwd=2,lty=2)
+```
+
+
+QQ-normal with `ggplot2`
+====================================================
+`ggplot2` also has functions for QQ plots.
+```{r,fig.width=10, fig.height=5}
+qplot(sample=Mavro) + geom_qq()
+```
+
+QQ-normal with `ggplot2`
+====================================================
+```{r,fig.width=10, fig.height=5}
+qplot(sample=Mavro) + stat_qq()
+```
+
+SAS QQ-normal plots
+=====================================================
+We find the qqplot option in the same proc as histograms:
+```
+proc univariate data=mavro;
+  var y;
+  histogram y;
+  qqplot y;
+run;
+```
+
+Note that `sgplot` can produce histograms and boxplots, but not QQ plots.
+
+
+
+Appendix : Quantiles and Probability
+========================================================
+
+To start to understand QQ-normal plots, first think of the quartiles for `Mavro`
+
+```{r}
+quantile(Mavro)
+```
+
+Since 25% of the values in the Mavro data set are less than or equal to 2.0013, we can think of the probability of any value $Y$ from `Mavro`, chosen at random, to be $\le 2.0013$ is 0.25, that is $P(Y \le 2.0013) = 0.25$. 
+
+Empirical Probability
+========================================================
+Similarly, $P(Y \le 2.0018) = 0.50$ and $P(Y \le 2.0021) = 0.75$. Since the maximum value in the `Mavro` data set is 2.0027, we know the probability that any value, chosen at random, will be $\le 2.0027$, so this value represents the %100 quantile.
+
+Empirical Probability
+========================================================
+
+Suppose we want to assign a probability $P$ for any value in `Mavro`. We can calculate this by sorting the values, then assigning the probablity of a random value $Y$ from `Mavro` being less than or equal to the $n^{th}$ value from `Mavro` as
+$$
+P(Y \le y_n) = n/N
+$$
+where $N=50$ are the total number of observations in `Mavro`. This can be thought of as a empirical cumulative probability.
+
+Empirical Probability
+========================================================
+Each of the values in `Mavro`, then, represent a quantile. Since each value in `Mavro` has the same probability as any other value, these quantiles will represent a *uniform* probablity. We now need to find a way to relate these to a normal distribution.
+
+
+Discussion Questions.
+========================================================
+
+* The first homework include a line graph with showing confidence intervals. What are the assumptions about this type of graph, and what are the differences in information content, between this type of graph and a box-whisker plot.
+
+* What are the differences in information content between bar plots and box-whisker plots?
+
+* How would modify the QQ-norm plot to be used with count data (i.e. Poisson distributions)?
+
+* How would you compute a empirical probability from an histogram? For example, what is the probability of a value from the Mavro data set falling between 2.0015 and 2.0021?
+

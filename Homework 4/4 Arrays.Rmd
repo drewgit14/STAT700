@@ -1,0 +1,319 @@
+---
+title: "Homework 4 Arrays and Lists"
+author: ''
+date: ''
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r,echo=FALSE}
+options(digits=12)
+unit.test.points=0
+```
+
+# Data
+
+In part, this will be an exercise in "programming to the data". To complete these, you should need only `0.05`, `0`, `1`, `2` and `3` as numeric constants; all other numeric values should come from the data. All the values you will need are defined below:
+
+```{r}
+CaloriesPerRecipeMean <- c(2123.8, 2122.3, 2089.9, 2250.0, 2234.2, 2249.6, 3051.9)
+CaloriesPerRecipeSD <- c(1050.0, 1002.3, 1009.6, 1078.6, 1089.2, 1094.8, 1496.2)
+CaloriesPerServingMean <- c(268.1, 271.1, 280.9, 294.7, 285.6, 288.6, 384.4)
+CaloriesPerServingSD <- c(124.8, 124.2, 116.2, 117.7, 118.3, 122.0, 168.3)
+ServingsPerRecipeMean <- c(12.9, 12.9, 13.0, 12.7, 12.4, 12.4, 12.7)
+ServingsPerRecipeSD <- c(13.3, 13.3, 14.5, 14.6, 14.3, 14.3, 13.0)
+sample.size <- 18
+tenth.increment <- 0.10
+idx.1936 <- 1
+idx.2006 <- length(CaloriesPerRecipeMean)
+idxs36_07 <- c(idx.1936,idx.2006)
+alpha=0.05
+```
+
+If you find yourself at a point where you feel you must write in your code a numeric value other than `c(0.05,0,1,2,3)`, say, `7`, you can do that, but before turning in your code, review this list to see if that value might be in the list, or where such a value might come from in the data.
+
+You will lose 0.5 points for each exercise that requires a numeric constant in your code, other than `c(0.05,0,1,2,3)`, unless you can make a strong argument otherwise.
+
+# Instructions.
+
+The instructions for this homework are different from the previous two:
+
+* There are 6 exercises. Choose 4 to be graded.
+* One of the exercises must be completed in both SAS and R. Make sure you document this in the output.
+* The other 3 exercises are to be complete in either R or SAS. Make sure you document this in the output.
+* You may choose to work the other exercises. If you do, put these *after* the exercises you want graded. Otherwise, we'll grade the first four exercises and stop grading there. Time permitting, we'll provide feedback on the additional exercises.
+* Exercises 1 and 2 have unit tests; put your code where specified and do not change the unit test chunks.
+* This homework is an exercise in working with arrays, array operations and array functions. We haven't covered iteration in lecture and you should be able to complete this exercise without iteration (`for` loops, etc). You will not get credit for solutions that require iteration. Similarly, do not use packages for this homework; work in base R.
+* You are not required to write additional (other than previous Homework) functions for this exercise, but you may. You will be expected to clearly document additional functions - identify the expected inputs and outputs.
+
+
+Some of the exercises have detailed instructions and are divided into parts You might find it easier use separate code chunks for each part and divide the work into phases. I find it helpful, in SAS IML, to `print("Part a")`, etc, preceding phases.
+
+Review your typeset code to ensure that it is readable and appropriately formatted and that all your comments are legible and clearly distinquished from the instructions. It might be a good idea to put your comments in *italicized text*. Don't use `#` in literate text, 
+
+#it looks like shouting.
+
+This exercise has a lot of equations that don't always typeset well in Word, so you may wish to refer to the typeset version of this file uploaded to D2L.
+
+You will be asked to reuse functions from the last homework. Copy them into place, directly, without modification, for this exercise. If you need to modify these functions to work with these data, comment out the portions that don't work but leave the code in place. Add new code that works, then include a comment on your change. What did you need to do as the data changed between this assignment and the last assignment?
+
+
+# Exercise 1
+
+For this exercise, we will use matrices to test significance of the difference among all the means in Wansink Table 1. This is frequently done using iteration, but we will use array operations for this exercises.
+
+
+### Part a.
+Create a square ($7 \times 7$) matrix `M_1` ($M_1$) with the means for Calories per Recipe in rows, duplicated in columns: 
+
+$$
+ M_1 = \left\{
+ \begin{array}{ccccccc}
+     2123.8 & 2122.3 & 2089.9 & 2250.0 & 2234.2 & 2249.6 & 3051.9 \\
+     2123.8 & 2122.3 & 2089.9 & 2250.0 & 2234.2 & 2249.6 & 3051.9 \\
+     \vdots & \vdots & \vdots & \vdots & \vdots & \vdots
+   \end{array}
+   \right\}
+$$
+
+You should be able to create this from `CaloriesPerRecipeMean.
+
+Create matrix `M_2` as the transpose of $M_1$.
+
+$$
+M_2 = \left\{
+ \begin{array}{ccccccc}
+     2123.8 & 2123.8 & 2123.8 & 2123.8 & 2123.8 & 2123.8 & 2123.8 \\
+     2122.3 & 2122.3 & 2122.3 & 2122.3 & 2122.3 & 2122.3 & 2122.3 \\
+     \vdots & \vdots & \vdots & \vdots & \vdots & \vdots
+   \end{array}
+   \right\}
+$$
+
+Repeat this process with the corresponding standard deviations (matrices `S_1` and `S_2`). These values have been defined in **Data**.
+
+Copy your Cohen's $d$ function from Homework 3 into this section and use the four matrices as parameters, assigning the result to `d.mat`. Print this matrix, then use R/IML functions to determine and print the maximum effect size among all treatment pairs.
+
+
+Assign to `d_12` the element from this matrix corresponding to the effect size for years 1936 and 2006 to pass the unit test. You should be able to use `idx.1936` and `idx.2006` as indexes.
+
+```{r}
+d_12 <- 0
+```
+
+
+```{r, unit test for exercise 1,echo=FALSE}
+if(abs(d_12-0.7181)<0.0001) {
+  print(unit.test.points <- unit.test.points+2)
+} else {
+  cat('d is not assigned the correct value','\n')
+}
+```
+
+
+
+# Exercise 2.
+
+### Part a.
+Given $\mu=0$ and $\sigma=1$, create three sequences of $x$ values, `x1 = ` $\mu-\sigma, \dots , \mu+\sigma$, `x2 =` $\mu-2\sigma, \dots , \mu+2\sigma$ and `x3 =` $\mu-3\sigma, \dots ,\mu+3\sigma$, using increments defined by `tenth.increment`. Use your likelihood function from Homework 2 to calculate $L$ for each sequence.
+
+Plot $L$ vs $x$ for `x3`.
+
+Calculate and print the sum of each of these sequences, multiplied by the increment value. 
+
+Assign appropriate values from one of the sequences to `l_1` and `l_2` to pass the unit tests for this exercise (hint - $x=0$ should be at the midpoint of the sequence, index relative to this element).
+
+
+```{r}
+l_1 <- 0
+l_2 <- 0
+```
+
+### Part b.
+Create a sequence from $\mu-3\sigma, \dots , \mu+3\sigma$, incremented by `tenth.increment`, given $\mu$ and $\sigma$ for Servings per Recipe, 1936, from Wansink Table 1 (use `idx.1936`), and use your likelihood function to calculate $L$, given $\mu$ and $\sigma$ for Servings per Recipe, 1936.
+
+Plot $L$ vs $x$. Comment on the similarities or differences between the plots in parts a and b.
+
+Calculate and print the sum of this series, multiplied by `tenth.increment`. Compare this sum to the sum in part a.
+
+### Unit Test (R)
+```{r, unit test for exercise 2,echo=FALSE}
+if(abs(l_1 - 0.396952)<1e-6) {
+  print(unit.test.points <- unit.test.points + 2)
+} else {
+  print("likelihood for x = 0.1 incorrect")
+}
+
+if(abs(l_2 - 0.391043)<1e-6 ) {
+  print(unit.test.points <- unit.test.points + 2)
+} else {
+  print("likelihood for x = 0.2 incorrect")
+}
+```
+
+
+# Exercise 3 (R or SAS, optional)
+
+Suppose we wish to determine the linear relationship be Calories per Serving and Calories per Recipe. We can determine this by solving a system of linear equations.
+
+
+$$
+\begin{aligned}
+2123.8 &=  \beta_1 + \beta_2 \times 268.1 \\
+2122.3 &=  \beta_1 + \beta_2 \times 271.1 \\
+\vdots &=  \vdots \\
+3051.9 &=  \beta_1 + \beta_2 \times 384.4 \\
+\end{aligned}
+$$
+
+
+We would write this in matrix notation as
+
+$$
+\left(\begin{array}{c}
+2123.8 \\
+2122.3 \\
+\vdots \\
+3051.9 
+ \end{array}\right) 
+ =
+ \left(\begin{array}{rr}
+ 1 & 268.1 \\
+ 1 & 271.1  \\
+\vdots & \vdots \\
+ 1 & 384.4
+ \end{array}\right) 
+ \left(\begin{array}{c}
+ \beta_1 \\
+ \beta_2
+ \end{array}\right)
+$$
+
+
+
+We would generally write this as $\mathbf{y} = \mathbf{X} \mathbf{\beta}$, and find a
+solution by computing 
+$$\mathbf{\hat{\beta}} = \mathbf{X}^{- 1}
+\mathbf{y}$$. 
+
+However, the simplest function for the inverse, $\mathbf{X}^{- 1}$ require square matrices, so commonly we use the *normal* equations, 
+
+$$ \mathbf{X}^{t}  \mathbf{y} = \mathbf{X}^{t} \mathbf{X}  \mathbf{\beta} $$
+(where $\mathbf{X}^{t}$ is the transpose of $\mathbf{X}$). We then find $\hat{\mathbf{\beta}} = \mathbf{X}^{t} \mathbf{X} ^{-1} \mathbf{X}^{t} \mathbf{y}$
+
+Define appropriate `X` and `y` matrices (`y` can be a vector in R). 
+Multiply the transpose of `X` by `X`, then use `solve` (R) or `inv` (IML) to find the inverse. Multiply this by the product of transpose `X` and `y` to find `hat.beta`.
+
+Print your `hat.beta`.
+
+```{r}
+
+```
+
+Compare your `hat.beta` to
+```{r}
+summary(lm(CaloriesPerRecipeMean~CaloriesPerServingMean))
+```
+
+If your estimate for $\hat{\beta}$ does not match the R result, you can sill get partial credit by printing your $y$, $X$, $(X^t X)^{-1}$ and $X^ty$.
+
+# Exercise 4
+
+The probability mass function for value $y$ from Poisson data with a mean of $\mu$ is given by 
+
+$$
+f(y;\mu) = \frac{e^{-\mu} \mu^y}{y!} = exp(-\mu)(\frac{1}{y!}) exp[y\times log(\mu)]
+$$
+
+### Part a
+Create a sequence of $y = \left \lfloor{\mu -  \sigma } \right \rfloor , \dots, \mu-1,\mu, \mu+1, \dots  \left \lceil{\mu+ \sigma }  \right \rceil$ given the mean and standard deviation for Servings per Recipe 1936, and calculate the $f(y;\mu)$, given $\mu$ for Servings per Recipe, 1936. 
+
+
+### Part b
+Next, compute the likelihood for each $y$ using your likelihood function from Exercise 2, with the same mean and standard deviation as in Part a of this exercise.
+
+Plot $f(x;\mu)$ vs $y$ from Part a, then $L(y;\mu,\sigma)$ vs $y$ from this part. Use different colors, symbols or line types (or combination of these) for the two curves. (If you do this in SAS, research the `group` option).
+
+Comment on the differences and similarities of the curves, noting in your comments the curve type (color, symbol, etc).
+
+### Part c
+Calculate and print the sum of each sequence $f$ and $L$, multiplied by the increment.
+
+```{r}
+
+```
+
+
+# Exercise 5
+
+Given a vector of mean estimates $x = x_1, x_2, \dots, x_k$, a vector of standard deviations $s = s_1, s_2, \dots, s_k$ and a vector of sample sizes $n = n_1, n_2, \dots, n_k$, we can calculate a one-way analysis of variance by
+
+$$
+MSB = \frac{n_1(x_1-\bar{x})^2 + n_2(x_2-\bar{x})^2 + \dots + n_k(x_k-\bar{x})^2} {k-1} = \frac{\sum_i n_i(x_i-\bar{x})^2}{k-1}
+$$
+and
+$$
+MSW = \frac{(n_1-1)s_1^2 + (n_2-1)s_2^2 + \dots (n_k-1)s_k^2 }{N-k} = \frac{\sum_i (n_i-1)s_i^2}{N-k}
+$$
+where $\bar{x}$ is the mean of $x_i$ and $N = \sum_i n_i$. The test statistic is $F = \frac{MSB}{MSW}$ which is distributed as $F_{\alpha,k-1,N-k}$
+
+### Part a
+
+Calculate MSW and MSB for Calories per Serving from Wansink Table 1. You can use the variables `CaloriesPerServingMean` and `CaloriesPerServingSD`.
+Use array functions and arithmetic for your calculations (hint - use pairwise operations). Do not hard code values for $N$ and $k$, calculate these from the appropriate variables.
+ 
+Print both MSB and MSW.
+```{r}
+
+```
+
+### Part b
+Calculate an F-ratio and a $p$ for this $F$, using the $F$ distribution with $k-1$ and $N-k$ degrees of freedom. Use $\alpha=0.05$. Compare these values to the corresponding values reported in Wansink Table 1.
+
+```{r}
+
+```
+
+
+You can check results by entering appropriate values in an online calculator like http://statpages.info/anova1sm.html .
+
+
+# Exercise 6 (R or SAS)
+
+You will refer to the matrices from Exercise 1 in this exercise. If you want to use IML for this exercise, put this exercise in the same PROC IML block.
+
+### Part a
+Compute the absolute value of the differences between pairs of treatments after subtracting $M_1$ and $M_2$. Name this matrix `TreatmentDifferences` and print this matrix, then print the maximum value of this matrix (using builtin funtions).
+
+```{r}
+```
+
+### Part b
+Use the `fisher.lsd` function to compute the LSD for each pair of treatments. Pass as parameters `S_1` and `S_2` from Exercise 1. Name this matrix `PairwiseLSD`. Print this matrix, then perform a comparison between `TreatmentDifferences` and `PairwiseLSD` to determine which treatment pairs are significantly different. Compute and print the number of pairs that are significantly different.
+
+```{r}
+```
+
+### Part c
+Now, modify your Tukey HSD function from Homework 3 to accept three and only three paramaters - a vector of standard deviations $s^2_i$, a vector of sample sizes $n_i$ and an optional $\alpha$. 
+
+Inside your modifed HSD, use the formula for $MSW$ from Exercise 5 to compute a pooled $s^2$. Use $N-k$ as the degrees of freedom and determine the number of comparisons from the data. For the divisor of the standard error term, use the harmonic mean of $n_i$, given by
+$$
+\tilde{n} = \frac{k}{\frac{1}{n_1}+\frac{1}{n_2}+ \dots + \frac{1}{n_k}}
+$$
+
+
+Call your new HSD function with the standard deviations used in Exercise 1 to compute a single HSD value; name this value `PairwiseHSD` and print this value. You will need to create a vector of $n_i$. 
+ 
+Repeating the steps from Part b, compare this value to `TreatmentDifferences` and compute the number of treatment means that are signficantly different. Comment on the number of different treatment pairs found in Part b and and this part.
+
+```{r}
+
+```
+
+# Total points from unit tests
+```{r}
+unit.test.points
+```
+
